@@ -16,7 +16,7 @@
   <div class="login-form__heading">
     <h3>ログイン</h3>
   </div>
-  <form class="form" action="{{ route('login') }}" method="post">
+  <form class="form" action="" method="post">
     @csrf
       <div class="form__group">
         <label for="email" class="form__label--item__mail">メールアドレス</label><br>
@@ -40,7 +40,7 @@
     </form>
 
   <div class="toregister">
-    <a href="{{ route('register') }}">会員登録はこちら</a>
+    <a href="{{ route('admin.register') }}">会員登録はこちら</a>
   </div>
 
 </div>

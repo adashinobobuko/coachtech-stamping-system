@@ -16,9 +16,17 @@ use App\Http\Controllers\StampingController;
 |
 */
 
-Route::get('/', [StampingController::class, 'index'])->name('staff.index');
+//トップページ（打刻ページ）の表示
+Route::get('/attendance', [StampingController::class, 'index'])->name('staff.index');
 
-Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+//管理者ダッシュボードの表示
+Route::get('/admin/attendance/list', [AdminController::class, 'index'])->name('admin.index');
 
-Route::get('/login', [AuthController::class, 'showLoginform'])->name('show.loginform');
-Route::get('/admin/login', [AuthController::class, 'showAdminLoginform'])->name('show.adminlogin');
+//ログインルート
+Route::get('/login', [AuthController::class, 'showStaffLogin'])->name('staff.login');
+Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
+
+//登録ルート
+Route::get('/register', [AuthController::class, 'showStaffRegister'])->name('staff.register');
+Route::get('/admin/register', [AuthController::class, 'showAdminLogin'])->name('admin.register');
+//TODO:管理者登録は必要なのか？シーディングで一人作成するのか？
