@@ -1,4 +1,4 @@
-@extends('staff.layouts.app')
+@extends('admin.layouts.app')
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/index.css') }}?v={{ time() }}" />
@@ -6,6 +6,6 @@
 
 @section('content')
     <body>
-    <h1>ここに時計が入る。出勤、休憩、休憩上がり、退勤</h1>
+    <h1>勤怠の管理画面</h1>
     </body>
 @endsection

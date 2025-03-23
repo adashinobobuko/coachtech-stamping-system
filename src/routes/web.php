@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\StampingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +16,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [StampingController::class, 'index'])->name('staff.index');
+
+Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+
+Route::get('/login', [AuthController::class, 'showLoginform'])->name('show.loginform');
+Route::get('/admin/login', [AuthController::class, 'showAdminLoginform'])->name('show.adminlogin');
