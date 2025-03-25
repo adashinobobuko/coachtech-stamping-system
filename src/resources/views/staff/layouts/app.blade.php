@@ -22,13 +22,13 @@
                 <a href=""  onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                     ログアウト
                 </a>
-                <form id="logout-form" action="" method="POST" style="display: none;">
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                         @csrf
                 </form>
             </div>
             @else
             <div class="tologin">
-                <a href="">ログイン</a>
+                <a href="{{ route('staff.login') }}">ログイン</a>
             </div>
             @endif
         </div>        

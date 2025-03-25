@@ -9,7 +9,7 @@
   <div class="register-form__heading">
     <h3>会員登録</h3>
   </div>
-  <form class="form" action="" method="post">
+  <form class="form" action="{{ route('register') }}" method="post">
     @csrf
     <div class="form__group">
       <label for="name" class="form__label--name">ユーザー名</label><br>

@@ -28,7 +28,7 @@
             </div>
             @else
             <div class="tologin">
-                <a href="">ログイン</a>
+                <a href="{{ route('admin.login') }}">ログイン</a>
             </div>
             @endif
         </div>        

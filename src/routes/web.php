@@ -1,32 +1,26 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StampingController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
-//トップページ（打刻ページ）の表示
+// トップページ（打刻ページ）
 Route::get('/attendance', [StampingController::class, 'index'])->name('staff.index');
+Route::redirect('/', '/attendance');
 
-//管理者ダッシュボードの表示
+// 管理者ダッシュボード
 Route::get('/admin/attendance/list', [AdminController::class, 'index'])->name('admin.index');
 
-//ログインルート
 Route::get('/login', [AuthController::class, 'showStaffLogin'])->name('staff.login');
-Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
-
-//登録ルート
 Route::get('/register', [AuthController::class, 'showStaffRegister'])->name('staff.register');
-Route::get('/admin/register', [AuthController::class, 'showAdminLogin'])->name('admin.register');
-//TODO:管理者登録は必要なのか？シーディングで一人作成するのか？
+
+// 管理者ログイン（Fortifyと分離してカスタム処理）
+Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
+// Todo:管理者用のログイン処理やlogoutも追加で定義する必要があります（POSTなど）
+
+//メール認証関連
+Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verify.email');
+Route::get('/verify-form', [AuthController::class, 'showVerifyForm'])->name('verify.form');
+Route::post('/resend-email', [AuthController::class, 'resendVerificationEmail'])->name('resend.email');
