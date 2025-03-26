@@ -3,11 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\StampingController;
+use App\Http\Controllers\AttendanceController;
 
 // トップページ（打刻ページ）
-Route::get('/attendance', [StampingController::class, 'index'])->name('staff.index');
+Route::get('/attendance', [AttendanceController::class, 'index'])->name('staff.index');
 Route::redirect('/', '/attendance');
+// Route::get('/dashboard', [AttendanceController::class, 'index'])->name('dashboard');
+Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+
 
 // 管理者ダッシュボード
 Route::middleware(['auth:admin'])->group(function () {

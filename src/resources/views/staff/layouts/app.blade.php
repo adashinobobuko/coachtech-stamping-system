@@ -17,6 +17,9 @@
             </a>
         </div>
         <div class="taball">
+            <a href="">勤怠</a>
+            <a href="">勤怠一覧</a>
+            <a href="">申請</a>
             @if (Auth::check())
             <div class="logged-out">
                 <a href=""  onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
