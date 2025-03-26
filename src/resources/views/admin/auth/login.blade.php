@@ -16,7 +16,7 @@
   <div class="login-form__heading">
     <h3>ログイン</h3>
   </div>
-  <form class="form" action="" method="post">
+  <form class="form" action="{{ route('admin.login.submit') }}" method="post">
     @csrf
       <div class="form__group">
         <label for="email" class="form__label--item__mail">メールアドレス</label><br>
@@ -38,10 +38,10 @@
         <button type="submit" class="form__button-submit">ログインする</button>
       </div>
     </form>
-
+  <!--
   <div class="toregister">
-    <a href="{{ route('admin.register') }}">会員登録はこちら</a>
-  </div>
+    <a href="">会員登録はこちら</a>
+  </div>-->
 
 </div>
 @endsection

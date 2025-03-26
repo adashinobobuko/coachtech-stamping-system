@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
@@ -182,18 +183,9 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
-            // セッションが開始されていなければ、開始する
-            if (!session()->isStarted()) {
-                session()->start();
-            }
-
-            // セッションを再生成
+        if (Auth::guard('admin')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-
-            return redirect()->intended('/attendance');
+            return redirect()->intended('/admin/attendance/list');
         }
 
         return back()->withErrors([
@@ -204,11 +196,11 @@ class AuthController extends Controller
     //管理者ログアウト処理
     public function adminlogout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('admin')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('message', 'ログアウトしました。');
+        return redirect('/admin/login')->with('message', 'ログアウトしました。');
     }
 }

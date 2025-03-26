@@ -10,14 +10,17 @@ Route::get('/attendance', [StampingController::class, 'index'])->name('staff.ind
 Route::redirect('/', '/attendance');
 
 // 管理者ダッシュボード
-Route::get('/admin/attendance/list', [AdminController::class, 'index'])->name('admin.index');
+Route::middleware(['auth:admin'])->group(function () {
+    Route::get('/admin/attendance/list', [AdminController::class, 'index'])->name('admin.index');
+});
 
 Route::get('/login', [AuthController::class, 'showStaffLogin'])->name('staff.login');
 Route::get('/register', [AuthController::class, 'showStaffRegister'])->name('staff.register');
 
 // 管理者ログイン（Fortifyと分離してカスタム処理）
 Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
-// Todo:管理者用のログイン処理やlogoutも追加で定義する必要があります（POSTなど）
+Route::post('/admin/login', [AuthController::class, 'adminlogin'])->name('admin.login.submit');
+Route::post('/admin/logout', [AuthController::class, 'adminlogout'])->name('admin.logout');
 
 //メール認証関連
 Route::post('/register', [AuthController::class, 'register'])->name('register');
