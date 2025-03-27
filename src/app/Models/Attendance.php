@@ -8,4 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Attendance extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'user_id',        // 
+        'type',           // 打刻の種類（clock_in, break_start, break_end, clock_out）
+        'timestamp',      // 打刻日時
+    ];
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }
