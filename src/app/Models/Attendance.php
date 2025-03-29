@@ -10,13 +10,17 @@ class Attendance extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',        // 
+        'user_id',        
         'type',           // 打刻の種類（clock_in, break_start, break_end, clock_out）
         'timestamp',      // 打刻日時
     ];
 
-    public function attendances()
+    protected $casts = [
+    'timestamp' => 'datetime',
+    ];
+
+    public function user()
     {
-        return $this->hasMany(Attendance::class);
+        return $this->belongsTo(User::class);
     }
 }

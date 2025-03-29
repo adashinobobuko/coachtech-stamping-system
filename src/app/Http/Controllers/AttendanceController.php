@@ -4,9 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Attendance;
+use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function index()
     {
         if (!auth()->check()) {
@@ -103,4 +109,118 @@ class AttendanceController extends Controller
 
         return back()->with('success', $message)->with('status', $status);
     }
+
+    // 勤怠データリスト
+    public function list(Request $request)
+    {
+        $user = auth()->user();
+        $month = $request->input('month', now()->format('Y-m'));
+
+        $startOfMonth = now()->create($month)->startOfMonth();
+        $endOfMonth = now()->create($month)->endOfMonth();
+
+        // 指定された月のデータを取得
+        $records = Attendance::where('user_id', $user->id)
+            ->whereBetween('timestamp', [$startOfMonth, $endOfMonth])
+            ->orderBy('timestamp')
+            ->get();
+
+        // 日別データに変換
+        $attendances = $this->formatAttendanceData($records);
+
+        // 前月・翌月情報
+        $prevMonth = $startOfMonth->copy()->subMonth()->format('Y-m');
+        $nextMonth = $startOfMonth->copy()->addMonth()->format('Y-m');
+
+        return view('staff.attendance.list', compact('attendances', 'month', 'prevMonth', 'nextMonth','startOfMonth'));
+    }
+
+    // 詳細画面
+    public function detail($id)
+    {
+        $record = Attendance::with('user')->findOrFail($id);
+
+        // 出勤、退勤、休憩開始・終了のデータ取得
+        $clockIn = Attendance::where('user_id', $record->user_id)
+                            ->whereDate('timestamp', $record->timestamp->toDateString())
+                            ->where('type', 'clock_in')
+                            ->first()->timestamp ?? null;
+
+        $clockOut = Attendance::where('user_id', $record->user_id)
+                            ->whereDate('timestamp', $record->timestamp->toDateString())
+                            ->where('type', 'clock_out')
+                            ->first()->timestamp ?? null;
+
+        $breakStart = Attendance::where('user_id', $record->user_id)
+                                ->whereDate('timestamp', $record->timestamp->toDateString())
+                                ->where('type', 'break_start')
+                                ->first()->timestamp ?? null;
+
+        $breakEnd = Attendance::where('user_id', $record->user_id)
+                                ->whereDate('timestamp', $record->timestamp->toDateString())
+                                ->where('type', 'break_end')
+                                ->first()->timestamp ?? null;
+
+        return view('staff.attendance.detail', compact(
+            'record',
+            'clockIn',
+            'clockOut',
+            'breakStart',
+            'breakEnd'
+        ));
+    }
+
+    // データのフォーマット処理
+    private function formatAttendanceData($records)
+    {
+        $attendances = [];
+
+        foreach ($records as $record) {
+            // 文字列の timestamp を Carbon インスタンスに変換
+            $timestamp = Carbon::parse($record->timestamp);
+
+            $date = $timestamp->format('Y-m-d');
+
+            if (!isset($attendances[$date])) {
+                $attendances[$date] = [
+                    'id' => $record->id, 
+                    'clock_in' => null,
+                    'clock_out' => null,
+                    'break' => '0:00',
+                    'total' => '0:00',
+                ];
+            }
+
+            switch ($record->type) {
+                case 'clock_in':
+                    $attendances[$date]['clock_in'] = $timestamp->format('H:i');
+                    break;
+
+                case 'clock_out':
+                    $attendances[$date]['clock_out'] = $timestamp->format('H:i');
+                    break;
+
+                case 'break_start':
+                    $attendances[$date]['break_start'] = $timestamp;
+                    break;
+
+                case 'break_end':
+                    if (isset($attendances[$date]['break_start'])) {
+                        $breakDuration = $timestamp->diff($attendances[$date]['break_start']);
+                        $attendances[$date]['break'] = $breakDuration->format('%H:%I');
+                    }
+                    break;
+            }
+
+            // 合計時間の計算
+            if ($attendances[$date]['clock_in'] && $attendances[$date]['clock_out']) {
+                $workDuration = Carbon::parse($attendances[$date]['clock_out'])
+                    ->diffInMinutes(Carbon::parse($attendances[$date]['clock_in']));
+                $attendances[$date]['total'] = floor($workDuration / 60) . ':' . str_pad($workDuration % 60, 2, '0', STR_PAD_LEFT);
+            }
+        }
+
+        return $attendances;
+    }
+
 }
