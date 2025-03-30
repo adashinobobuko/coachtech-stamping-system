@@ -28,19 +28,6 @@ Route::middleware(['guest'])->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('staff.register.submit');
 });
 
-
-//  管理者ルート
-Route::middleware(['auth:admin'])->group(function () {
-    Route::get('/admin/attendance/list', [AdminController::class, 'index'])->name('admin.index');
-    Route::post('/admin/logout', [AuthController::class, 'adminlogout'])->name('admin.logout');
-});
-
-
-//  管理者ログイン・登録
-Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
-Route::post('/admin/login', [AuthController::class, 'adminlogin'])->name('admin.login.submit');
-
-
 //  メール認証関連
 Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verify.email');
 Route::get('/verify-form', [AuthController::class, 'showVerifyForm'])->name('verify.form');
@@ -50,6 +37,17 @@ Route::post('/resend-email', [AuthController::class, 'resendVerificationEmail'])
 Route::middleware(['auth'])->group(function () {
     Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
     Route::get('/attendance/{id}', [AttendanceController::class, 'detail'])->name('attendance.detail');
-    Route::get('/attendance/edit/{id}', [AttendanceController::class, 'edit'])->name('attendance.edit');
-    //Route::post('/attendance/update/{id}', [AttendanceController::class, 'update'])->name('attendance.update');
+    Route::post('/attendance/update/{id}', [AttendanceController::class, 'update'])->name('attendance.update');
 });
+
+
+
+//  管理者ルート
+Route::middleware(['auth:admin'])->group(function () {
+    Route::get('/admin/attendance/list', [AdminController::class, 'index'])->name('admin.index');
+    Route::post('/admin/logout', [AuthController::class, 'adminlogout'])->name('admin.logout');
+});
+
+//  管理者ログイン・登録
+Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
+Route::post('/admin/login', [AuthController::class, 'adminlogin'])->name('admin.login.submit');

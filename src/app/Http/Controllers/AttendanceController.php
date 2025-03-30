@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use Carbon\Carbon;
+use App\Models\AttendanceApplication;
 
 class AttendanceController extends Controller
 {
@@ -168,6 +169,68 @@ class AttendanceController extends Controller
             'breakStart',
             'breakEnd'
         ));
+    }
+
+    public function update(Request $request, $id)
+    {
+        // $request->validate([
+        //     'clock_in' => 'nullable|date_format:H:i',
+        //     'clock_out' => 'nullable|date_format:H:i|after_or_equal:clock_in',
+        //     'break_start' => 'nullable|date_format:H:i|after_or_equal:clock_in',
+        //     'break_end' => 'nullable|date_format:H:i|after:break_start',
+        //     'note' => 'required|string|max:255',
+        // ]);
+
+        // 勤怠データの取得
+        $record = Attendance::with('user')->findOrFail($id);
+
+        // 申請内容の保存
+        $updates = [];
+        if ($request->clock_in) {
+            $updates[] = [
+                'type' => 'clock_in',
+                'old_time' => $record->timestamp->toDateString() . ' ' . ($record->clock_in ? $record->clock_in->format('H:i') : ''),
+                'new_time' => $record->timestamp->toDateString() . ' ' . $request->clock_in,
+            ];
+        }
+        if ($request->clock_out) {
+            $updates[] = [
+                'type' => 'clock_out',
+                'old_time' => $record->timestamp->toDateString() . ' ' . ($record->clock_out ? $record->clock_out->format('H:i') : ''),
+                'new_time' => $record->timestamp->toDateString() . ' ' . $request->clock_out,
+            ];
+        }
+        if ($request->break_start) {
+            $updates[] = [
+                'type' => 'break_start',
+                'old_time' => $record->timestamp->toDateString() . ' ' . ($record->break_start ? $record->break_start->format('H:i') : ''),
+                'new_time' => $record->timestamp->toDateString() . ' ' . $request->break_start,
+            ];
+        }
+        if ($request->break_end) {
+            $updates[] = [
+                'type' => 'break_end',
+                'old_time' => $record->timestamp->toDateString() . ' ' . ($record->break_end ? $record->break_end->format('H:i') : ''),
+                'new_time' => $record->timestamp->toDateString() . ' ' . $request->break_end,
+            ];
+        }
+
+        // `attendance_applications` テーブルに修正申請を保存
+        foreach ($updates as $update) {
+            AttendanceApplication::create([
+                'attendance_id' => $record->id,
+                'user_id' => auth()->id(),
+                'type' => $update['type'],
+                'old_time' => $update['old_time'],
+                'new_time' => $update['new_time'],
+                'note' => $request->note,
+                'status' => '承認待ち',
+            ]);
+        }
+
+        return redirect()->route('attendance.detail', ['id' => $record->id])
+        ->with('success', '修正申請が完了しました。')
+        ->withInput();
     }
 
     // データのフォーマット処理

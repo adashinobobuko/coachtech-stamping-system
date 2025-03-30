@@ -38,7 +38,7 @@
                             <td>{{ $data['total'] }}</td>
                             <td>
                             @if (isset($data['id']))
-                                <a href="{{ route('staff.attendance.detail', ['id' => $data['id']]) }}" class="btn-detail">詳細</a>
+                                <a href="{{ route('attendance.detail', ['id' => $data['id']]) }}" class="btn-detail">詳細</a>
                             @else
                                 <span class="btn-detail-disabled">詳細なし</span>
                             @endif
