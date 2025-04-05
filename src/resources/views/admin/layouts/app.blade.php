@@ -17,13 +17,14 @@
             </a>
         </div>
         <div class="taball">
+            <a href="{{ route('admin.index') }}">勤怠一覧</a>
+            <a href="{{ route('admin.staff.list') }}">スタッフ一覧</a>
+            <a href="">申請一覧</a>
             @if (Auth::check())
             <div class="logged-out">
-                <a href=""  onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    ログアウト
-                </a>
-                <form id="logout-form" action="" method="POST" style="display: none;">
-                        @csrf
+                <form id="logout-form" action="{{ route('admin.logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="text-red-600 hover:underline">ログアウト</button>
                 </form>
             </div>
             @else

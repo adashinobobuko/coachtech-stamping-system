@@ -7,6 +7,8 @@ docker-compose up -d
 
 docker-compose exec app php artisan migrate  
 docker-compose exec app php artisan db:seed  
+管理者シーディングについてかく
+AdminSeeder
 
 DB_CONNECTION=mysql  
 DB_HOST=mysql  
@@ -16,7 +18,7 @@ DB_USERNAME=laravel_user
 DB_PASSWORD=laravel_pass  
 ## 使用技術(実行環境)
 Laravel 8.83.8
-PHP 7.4.9
+PHP バージョン変わったので記載
 mysql  Ver 15.1 
 Docker
 

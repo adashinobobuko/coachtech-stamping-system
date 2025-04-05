@@ -48,10 +48,16 @@
                     <button type="submit" class="btn">休憩戻</button>
                 </form>
             @endif
-
+            
             @if (session('success'))
                 <div class="alert alert-success" style="margin-top: 10px;">
                     {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="alert alert-danger" style="margin-top: 10px;">
+                    {{ session('error') }}
                 </div>
             @endif
         </div>

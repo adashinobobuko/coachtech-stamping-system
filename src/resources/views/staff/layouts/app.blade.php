@@ -19,7 +19,7 @@
         <div class="taball">
             <a href="{{ route('staff.index') }}">勤怠</a>
             <a href="{{ route('attendance.list') }}">勤怠一覧</a>
-            <a href="">申請</a>
+            <a href="{{ route('attendance.applications') }}">申請</a>
             @if (Auth::check())
             <div class="logged-out">
                 <a href=""  onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

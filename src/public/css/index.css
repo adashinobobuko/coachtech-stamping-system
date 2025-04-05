@@ -76,3 +76,27 @@ body {
     text-decoration: none;
     border-radius: 5px;
 }
+
+.tab-menu {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+}
+
+.tab-menu a {
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #333;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    background-color: #f9f9f9;
+}
+
+.tab-menu a.active {
+    background-color: #fff;
+    border-top: 2px solid #000;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 2px solid #fff;
+    font-weight: bold;
+}

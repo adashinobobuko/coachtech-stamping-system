@@ -31,21 +31,45 @@ class AttendanceController extends Controller
 
     public function getStatus($user)
     {
-        $latest = Attendance::where('user_id', $user->id)
-                            ->orderBy('timestamp', 'desc')
-                            ->first();
+        $attendances = Attendance::where('user_id', $user->id)
+            ->orderBy('timestamp')
+            ->get();
 
-        if (!$latest) {
-            return '勤務外';
+        $status = '勤務外';
+        $inWork = false;
+        $onBreak = false;
+
+        foreach ($attendances as $attendance) {
+            switch ($attendance->type) {
+                case 'clock_in':
+                    $inWork = true;
+                    $onBreak = false;
+                    $status = '出勤中';
+                    break;
+
+                case 'break_start':
+                    if ($inWork && !$onBreak) {
+                        $onBreak = true;
+                        $status = '休憩中';
+                    }
+                    break;
+
+                case 'break_end':
+                    if ($inWork && $onBreak) {
+                        $onBreak = false;
+                        $status = '出勤中';
+                    }
+                    break;
+
+                case 'clock_out':
+                    $inWork = false;
+                    $onBreak = false;
+                    $status = '勤務外';
+                    break;
+            }
         }
 
-        return match ($latest->type) {
-            'clock_in' => '出勤中',
-            'break_start' => '休憩中',
-            'clock_out' => '退勤済',
-            'break_end' => $this->checkPreviousStatus($user),
-            default => '勤務外',
-        };
+        return $status;
     }
 
     // 休憩終了後の状態を取得
@@ -60,6 +84,7 @@ class AttendanceController extends Controller
         return $previous && $previous->type === 'clock_in' ? '出勤中' : '勤務外';
     }
 
+    //　打刻の処理
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -72,9 +97,20 @@ class AttendanceController extends Controller
         $type = $request->type;
         $status = $this->getStatus($user);
 
-        // 出勤・退勤・休憩のバリデーション
-        if ($type === 'clock_in' && $status === '出勤中') {
-            return back()->with('error', 'すでに出勤しています。');
+        // 出勤・退勤・休憩のバリデーション 出勤は１日一回にしばる
+        if ($type === 'clock_in') {
+            if ($status === '出勤中') {
+                return back()->with('error', 'すでに出勤しています。');
+            }
+
+            $alreadyClockedIn = Attendance::where('user_id', $user->id)
+                ->where('type', 'clock_in')
+                ->whereDate('timestamp', $now->toDateString())
+                ->exists();
+
+            if ($alreadyClockedIn) {
+                return back()->with('error', '本日はすでに出勤しています。');
+            }
         }
 
         if ($type === 'clock_out' && $status === '勤務外') {
@@ -96,16 +132,12 @@ class AttendanceController extends Controller
             'timestamp' => $now,
         ]);
 
-        if ($type === 'clock_out') {
-            auth()->logout(); // 退勤後はログアウト
-        }
-
         $status = $this->getStatus($user);
         $message = match ($type) {
             'clock_in' => '出勤しました。',
             'break_start' => '休憩を開始しました。',
             'break_end' => '休憩終了しました。',
-            'clock_out' => '退勤しました。お疲れさまでした！',
+            'clock_out' => 'お疲れさまでした',
         };
 
         return back()->with('success', $message)->with('status', $status);
@@ -139,7 +171,19 @@ class AttendanceController extends Controller
     // 詳細画面
     public function detail($id)
     {
-        $record = Attendance::with('user')->findOrFail($id);
+        // まず AttendanceApplication を探す
+        $application = AttendanceApplication::with('attendance')->find($id);
+
+        if ($application) {
+            // 申請データが見つかった場合（申請詳細画面）
+            $record = $application->attendance;
+            $viewType = 'application'; // 申請の場合
+        } else {
+            // 申請データがない場合は Attendance を探す
+            $record = Attendance::with('user')->findOrFail($id);
+            $application = null; // 申請データなし
+            $viewType = 'attendance'; // 勤怠の場合
+        }
 
         // 出勤、退勤、休憩開始・終了のデータ取得
         $clockIn = Attendance::where('user_id', $record->user_id)
@@ -162,75 +206,82 @@ class AttendanceController extends Controller
                                 ->where('type', 'break_end')
                                 ->first()->timestamp ?? null;
 
+        // 同じビューを使用し、application か record を渡す
         return view('staff.attendance.detail', compact(
             'record',
+            'application',
             'clockIn',
             'clockOut',
             'breakStart',
-            'breakEnd'
+            'breakEnd',
+            'viewType'
         ));
     }
 
     public function update(Request $request, $id)
     {
-        // $request->validate([
-        //     'clock_in' => 'nullable|date_format:H:i',
-        //     'clock_out' => 'nullable|date_format:H:i|after_or_equal:clock_in',
-        //     'break_start' => 'nullable|date_format:H:i|after_or_equal:clock_in',
-        //     'break_end' => 'nullable|date_format:H:i|after:break_start',
-        //     'note' => 'required|string|max:255',
-        // ]);
+        // 申請データを確認
+        $application = AttendanceApplication::where('attendance_id', $id)
+                        ->where('user_id', auth()->id())
+                        ->first();
 
         // 勤怠データの取得
         $record = Attendance::with('user')->findOrFail($id);
 
-        // 申請内容の保存
-        $updates = [];
-        if ($request->clock_in) {
-            $updates[] = [
-                'type' => 'clock_in',
-                'old_time' => $record->timestamp->toDateString() . ' ' . ($record->clock_in ? $record->clock_in->format('H:i') : ''),
-                'new_time' => $record->timestamp->toDateString() . ' ' . $request->clock_in,
-            ];
-        }
-        if ($request->clock_out) {
-            $updates[] = [
-                'type' => 'clock_out',
-                'old_time' => $record->timestamp->toDateString() . ' ' . ($record->clock_out ? $record->clock_out->format('H:i') : ''),
-                'new_time' => $record->timestamp->toDateString() . ' ' . $request->clock_out,
-            ];
-        }
-        if ($request->break_start) {
-            $updates[] = [
-                'type' => 'break_start',
-                'old_time' => $record->timestamp->toDateString() . ' ' . ($record->break_start ? $record->break_start->format('H:i') : ''),
-                'new_time' => $record->timestamp->toDateString() . ' ' . $request->break_start,
-            ];
-        }
-        if ($request->break_end) {
-            $updates[] = [
-                'type' => 'break_end',
-                'old_time' => $record->timestamp->toDateString() . ' ' . ($record->break_end ? $record->break_end->format('H:i') : ''),
-                'new_time' => $record->timestamp->toDateString() . ' ' . $request->break_end,
-            ];
-        }
+        // バリデーションルール
+        $request->validate([
+            'clock_in' => 'nullable|date_format:H:i',
+            'clock_out' => 'nullable|date_format:H:i|after_or_equal:clock_in',
+            'break_start' => 'nullable|date_format:H:i|after_or_equal:clock_in',
+            'break_end' => 'nullable|date_format:H:i|after:break_start',
+            'note' => 'nullable|string|max:255',
+        ]);
 
-        // `attendance_applications` テーブルに修正申請を保存
-        foreach ($updates as $update) {
+        // 修正申請データの更新・作成
+        if ($application) {
+            // 既存の申請がある場合は更新
+            $application->update([
+                'clock_in' => $request->clock_in,
+                'clock_out' => $request->clock_out,
+                'break_start' => $request->break_start,
+                'break_end' => $request->break_end,
+                'note' => $request->note,
+                'status' => '承認待ち',
+            ]);
+        } else {
+            // 申請が存在しない場合は新規作成
             AttendanceApplication::create([
                 'attendance_id' => $record->id,
                 'user_id' => auth()->id(),
-                'type' => $update['type'],
-                'old_time' => $update['old_time'],
-                'new_time' => $update['new_time'],
+                'type' => '修正申請',
+                'old_time' => $record->timestamp->format('Y-m-d H:i:s'),
+                'new_time' => now()->format('Y-m-d H:i:s'),
                 'note' => $request->note,
                 'status' => '承認待ち',
             ]);
         }
 
         return redirect()->route('attendance.detail', ['id' => $record->id])
-        ->with('success', '修正申請が完了しました。')
-        ->withInput();
+            ->with('success', '修正申請が完了しました。');
+    }
+
+    //申請一覧
+    public function applicationindex(Request $request)
+    {
+        // タブの切り替え判定（デフォルトは「承認待ち」）
+        $status = $request->input('status', '承認待ち');
+
+        // 自分の申請データのみ取得
+        $applications = AttendanceApplication::with('attendance')
+            ->where('user_id', auth()->id())
+            ->where('status', $status)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy(function ($application) {
+                return \Carbon\Carbon::parse($application->created_at)->format('Y-m-d');
+        });
+
+        return view('staff.attendance.applicationlist', compact('applications', 'status'));
     }
 
     // データのフォーマット処理
@@ -254,6 +305,7 @@ class AttendanceController extends Controller
                 ];
             }
 
+            //　日ごとのデータを整形し配列に出力
             switch ($record->type) {
                 case 'clock_in':
                     $attendances[$date]['clock_in'] = $timestamp->format('H:i');
@@ -267,6 +319,7 @@ class AttendanceController extends Controller
                     $attendances[$date]['break_start'] = $timestamp;
                     break;
 
+                //　対応するbreak_startがある場合
                 case 'break_end':
                     if (isset($attendances[$date]['break_start'])) {
                         $breakDuration = $timestamp->diff($attendances[$date]['break_start']);

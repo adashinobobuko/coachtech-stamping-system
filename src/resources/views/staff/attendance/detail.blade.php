@@ -8,11 +8,13 @@
     <body>
         <div style="margin-top: 50px;">
             <h2 class="title-text">勤怠詳細・修正申請</h2>
-                @if(session('success'))
-                    <div class="alert alert-success" style="margin-top: 20px;">
-                        {{ session('success') }}
-                    </div>
-                @endif
+
+            {{-- 成功メッセージの表示 --}}
+            @if(session('success'))
+                <div class="alert alert-success" style="margin-top: 20px;">
+                    {{ session('success') }}
+                </div>
+            @endif
 
             {{-- 修正フォーム --}}
             <form method="POST" action="{{ route('attendance.update', ['id' => $record->id]) }}">
@@ -65,14 +67,20 @@
                 {{-- 備考 --}}
                 <div class="form-group">
                     <label>備考</label>
-                    <textarea name="note" class="form-control">{{ old('note', $record->note) }}</textarea>
+                    <textarea name="note" class="form-control">{{ old('note', isset($application) ? $application->note : '') }}</textarea>
                 </div>
 
                 {{-- 修正申請ボタン --}}
                 <div class="btn-container">
-                    <button type="submit" class="btn btn-submit">修正</button>
+                    <button type="submit" class="btn btn-submit">修正申請</button>
                 </div>
             </form>
+
+            {{-- 戻るリンク --}}
+            <div style="margin-top: 20px;">
+                <a href="{{ route('attendance.list') }}">勤怠一覧に戻る</a> |
+                <a href="{{ route('attendance.applications') }}">申請一覧に戻る</a>
+            </div>
         </div>
     </body>
 @endsection

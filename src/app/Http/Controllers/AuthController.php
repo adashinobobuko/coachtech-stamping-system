@@ -33,11 +33,6 @@ class AuthController extends Controller
         return view('staff.auth.register');
     }
 
-    public function showAdminRegister()
-    {
-        return view('admin.auth.register');
-    }
-
     // ユーザー登録処理
     public function register(RegisterRequest $request)
     {
