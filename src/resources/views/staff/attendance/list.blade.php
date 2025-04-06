@@ -31,7 +31,7 @@
                 <tbody>
                     @foreach ($attendances as $date => $data)
                         <tr>
-                            <td>{{ $date }}</td>
+                            <td>{{ \Carbon\Carbon::parse($date)->format('m/d') }}（{{ ['日','月','火','水','木','金','土'][\Carbon\Carbon::parse($date)->dayOfWeek] }}）</td>
                             <td>{{ $data['clock_in'] ?? '--:--' }}</td>
                             <td>{{ $data['clock_out'] ?? '--:--' }}</td>
                             <td>{{ $data['break'] ?? '0:00' }}</td>
@@ -46,7 +46,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>rr
+            </table>
         </div>
     </body>
 @endsection

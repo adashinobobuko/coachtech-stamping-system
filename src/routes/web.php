@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\StaffAttendanceController;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 
 // トップページ判定（ログイン中ユーザーのロールで分岐）
@@ -39,10 +38,10 @@ Route::middleware(['auth:web'])->group(function () {
 
     Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
     Route::get('/stamp_correction_request/list', [AttendanceController::class, 'applicationindex'])->name('attendance.applications');
-    Route::get('/attendance/{id}', [StaffAttendanceController::class, 'show'])->name('staff.attendance.show');
+    Route::get('/attendance/{id}', [AttendanceController::class, 'detail'])->name('staff.attendance.show');
     Route::post('/attendance/update/{id}', [AttendanceController::class, 'update'])->name('attendance.update');
 
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('staff.logout');
+    Route::post('/logout', [AuthController::class, 'staffLogout'])->name('staff.logout');
 });
 
 // 管理者ログイン・登録
@@ -55,4 +54,5 @@ Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('/attendance/{id}', [AdminController::class, 'show'])->name('admin.attendance.show');
     Route::post('/logout', [AuthController::class, 'adminlogout'])->name('admin.logout');
     Route::get('/staff/list', [AdminController::class, 'staffListShow'])->name('admin.staff.list');
+    Route::get('/attendance/staff/{id}', [AdminController::class, 'StaffAttendanceShow'])->name('admin.staff.attendance');
 });

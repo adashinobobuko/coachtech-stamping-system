@@ -89,4 +89,13 @@ class AdminController extends Controller
 
         return view('admin.staff_list', compact('users'));
     }
+
+    public function StaffAttendanceShow($user_id)
+    {
+        $user = User::findOrFail($user_id);
+        $attendances = Attendance::where('user_id', $user_id)->get();
+        $currentMonth = now()->format('Y-m');
+
+        return view('admin.staff_attendance', compact('user', 'attendances','currentMonth'));
+    }
 }

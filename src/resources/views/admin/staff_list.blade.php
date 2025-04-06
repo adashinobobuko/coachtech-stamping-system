@@ -23,7 +23,7 @@
                 <td class="border px-4 py-2">{{ $user->name }}</td>
                 <td class="border px-4 py-2">{{ $user->email }}</td>
                 <td class="border px-4 py-2">
-                    <a href="{{ route('admin.attendance.show', ['id' => $user->id]) }}"
+                    <a href="{{ route('admin.staff.attendance', ['id' => $user->id]) }}"
                        class="text-blue-600 hover:underline">詳細</a>
                 </td>
             </tr>

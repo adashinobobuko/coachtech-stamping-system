@@ -48,21 +48,34 @@
                         class="form-control">
                 </div>
 
-                {{-- 休憩開始時間 --}}
+                {{-- 休憩1回目 --}}
+                @if (!empty($breakPairs[0]))
                 <div class="form-group">
-                    <label>休憩開始時間</label>
-                    <input type="text" name="break_start"
-                        value="{{ old('break_start', $breakStart ? $breakStart->format('H:i') : '') }}"
-                        class="form-control">
+                    <label>休憩</label>
+                        <input type="text" name="break_start"
+                            value="{{ old('break_start', $breakPairs[0]['start']) }}"
+                            class="form-control" style="width: 100px;">
+                        <span>～</span>
+                        <input type="text" name="break_end"
+                            value="{{ old('break_end', $breakPairs[0]['end']) }}"
+                            class="form-control" style="width: 100px;">
                 </div>
+                @endif
 
-                {{-- 休憩終了時間 --}}
+                {{-- 休憩2回目 --}}
+                @if (!empty($breakPairs[1]))
                 <div class="form-group">
-                    <label>休憩終了時間</label>
-                    <input type="text" name="break_end"
-                        value="{{ old('break_end', $breakEnd ? $breakEnd->format('H:i') : '') }}"
-                        class="form-control">
+                    <label>休憩2</label>
+                        <input type="text" name="break_start2"
+                            value="{{ old('break_start2', $breakPairs[1]['start']) }}"
+                            class="form-control" style="width: 100px;">
+                        <span>～</span>
+                        <input type="text" name="break_end2"
+                            value="{{ old('break_end2', $breakPairs[1]['end']) }}"
+                            class="form-control" style="width: 100px;">
                 </div>
+                @endif
+
 
                 {{-- 備考 --}}
                 <div class="form-group">
