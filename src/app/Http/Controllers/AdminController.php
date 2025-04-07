@@ -92,10 +92,12 @@ class AdminController extends Controller
 
     public function StaffAttendanceShow($user_id)
     {
+        // 指定されたユーザーの出勤情報を取得、選択されている年、月を表示
         $user = User::findOrFail($user_id);
         $attendances = Attendance::where('user_id', $user_id)->get();
         $currentMonth = now()->format('Y-m');
 
+        // 月ごとの出勤情報を取得
         return view('admin.staff_attendance', compact('user', 'attendances','currentMonth'));
     }
 }

@@ -45,7 +45,7 @@
                         <td>{{ $application->old_time }}</td>
                         <td>{{ $application->note }}</td>
                         <td>{{ $application->created_at->format('Y-m-d H:i') }}</td>
-                        <td><a href="{{ route('staff.attendance.show', ['id' => $application->id]) }}">詳細</a></td>
+                        <td><a href="{{ route('staff.application.show', ['id' => $application->id]) }}">詳細</a></td>
                     </tr>
                 @endforeach
             @endforeach

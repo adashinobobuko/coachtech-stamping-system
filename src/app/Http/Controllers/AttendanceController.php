@@ -159,38 +159,51 @@ class AttendanceController extends Controller
 
     public function detail($id)
     {
-        $application = AttendanceApplication::with('attendance')->find($id);
+        $userId = auth()->id();
+
+        // 「承認待ち」の申請があるかどうかを最優先で確認
+        $application = AttendanceApplication::where('attendance_id', $id)
+            ->where('user_id', $userId)
+            ->where('status', '承認待ち')
+            ->first();
+
+        $isPending = false;
 
         if ($application) {
             $record = $application->attendance;
+            $isPending = true;
             $viewType = 'application';
         } else {
+            // 承認待ち申請がなければ通常の勤怠データを表示
             $record = Attendance::with('user')->findOrFail($id);
             $application = null;
             $viewType = 'attendance';
         }
 
+        $baseDate = $application
+        ? \Carbon\Carbon::parse($application->old_time)->toDateString()
+        : $record->timestamp->toDateString();
+
+        // 出勤・退勤の打刻取得
         $clockIn = Attendance::where('user_id', $record->user_id)
-                            ->whereDate('timestamp', $record->timestamp->toDateString())
-                            ->where('type', 'clock_in')
-                            ->first()->timestamp ?? null;
+            ->whereDate('timestamp', $baseDate)
+            ->where('type', 'clock_in')
+            ->first()->timestamp ?? null;
 
         $clockOut = Attendance::where('user_id', $record->user_id)
-                            ->whereDate('timestamp', $record->timestamp->toDateString())
-                            ->where('type', 'clock_out')
-                            ->first()->timestamp ?? null;
+            ->whereDate('timestamp', $baseDate)
+            ->where('type', 'clock_out')
+            ->first()->timestamp ?? null;
 
         $breakStarts = Attendance::where('user_id', $record->user_id)
-            ->whereDate('timestamp', $record->timestamp->toDateString())
+            ->whereDate('timestamp', $baseDate)
             ->where('type', 'break_start')
-            ->orderBy('timestamp')
-            ->get();
+            ->orderBy('timestamp')->get();
 
         $breakEnds = Attendance::where('user_id', $record->user_id)
-            ->whereDate('timestamp', $record->timestamp->toDateString())
+            ->whereDate('timestamp', $baseDate)
             ->where('type', 'break_end')
-            ->orderBy('timestamp')
-            ->get();
+            ->orderBy('timestamp')->get();
 
         $breakPairs = [];
         for ($i = 0; $i < min($breakStarts->count(), $breakEnds->count()); $i++) {
@@ -200,23 +213,93 @@ class AttendanceController extends Controller
             ];
         }
 
+        // viewに必要な情報を渡す
         return view('staff.attendance.detail', compact(
             'record',
             'application',
             'clockIn',
             'clockOut',
             'breakPairs',
-            'viewType'
+            'viewType',
+            'isPending'
         ));
+    }
+
+    public function applicationDetail($id)
+    {
+        $userId = auth()->id();
+
+        $application = AttendanceApplication::with('attendance', 'user')
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        $baseDate = \Carbon\Carbon::parse($application->old_time)->toDateString();
+
+    $user_id = $application->user_id;
+
+    $clock_in = Attendance::where('user_id', $user_id)
+        ->whereDate('timestamp', $baseDate)
+        ->where('type', 'clock_in')
+        ->first()->timestamp ?? null;
+
+    $clock_out = Attendance::where('user_id', $user_id)
+        ->whereDate('timestamp', $baseDate)
+        ->where('type', 'clock_out')
+        ->first()->timestamp ?? null;
+
+    $break_starts = Attendance::where('user_id', $user_id)
+        ->whereDate('timestamp', $baseDate)
+        ->where('type', 'break_start')
+        ->orderBy('timestamp')->get();
+
+    $break_ends = Attendance::where('user_id', $user_id)
+        ->whereDate('timestamp', $baseDate)
+        ->where('type', 'break_end')
+        ->orderBy('timestamp')->get();
+
+    $record = $application->attendance;
+
+    $breakPairs = [];
+    for ($i = 0; $i < min($break_starts->count(), $break_ends->count()); $i++) {
+        $breakPairs[] = [
+            'start' => $break_starts[$i]->timestamp->format('H:i'),
+            'end' => $break_ends[$i]->timestamp->format('H:i'),
+        ];
+    }
+
+    return view('staff.attendance.detail', [
+        'application' => $application,
+        'record' => $record,
+        'clockIn' => $clock_in,
+        'clockOut' => $clock_out,
+        'breakPairs' => $breakPairs,
+        'isPending' => true,
+    ]);
+
     }
 
     public function update(Request $request, $id)
     {
-        $application = AttendanceApplication::where('attendance_id', $id)
-                        ->where('user_id', auth()->id())
-                        ->first();
+        $userId = auth()->id();
 
+        // すでに「承認待ち」申請があるかチェック
+        $pendingExists = AttendanceApplication::where('attendance_id', $id)
+            ->where('user_id', $userId)
+            ->where('status', '承認待ち')
+            ->exists();
+
+        if ($pendingExists) {
+            return redirect()->route('staff.attendance.show', ['id' => $id])
+                ->with('error', 'すでに申請中です。承認が完了するまで再申請できません。');
+        }
+
+        // 勤怠データ取得（以降は通常通り）
         $record = Attendance::with('user')->findOrFail($id);
+
+        $application = AttendanceApplication::where('attendance_id', $id)
+            ->where('user_id', $userId)
+            ->first();
 
         if ($application) {
             $application->update([
@@ -230,7 +313,7 @@ class AttendanceController extends Controller
         } else {
             AttendanceApplication::create([
                 'attendance_id' => $record->id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'type' => '修正申請',
                 'old_time' => $record->timestamp->format('Y-m-d H:i:s'),
                 'new_time' => now()->format('Y-m-d H:i:s'),

@@ -83,11 +83,34 @@
                     <textarea name="note" class="form-control">{{ old('note', isset($application) ? $application->note : '') }}</textarea>
                 </div>
 
-                {{-- 修正申請ボタン --}}
-                <div class="btn-container">
-                    <button type="submit" class="btn btn-submit">修正申請</button>
-                </div>
-            </form>
+                {{-- 申請対象日 --}}
+                @if (!empty($application))
+                    <div class="form-group">
+                        <label>申請対象日</label>
+                        <input type="text"
+                            value="{{ \Carbon\Carbon::parse($application->old_time)->format('Y年n月j日') }}"
+                            class="form-control"
+                            readonly>
+                    </div>
+                @endif
+
+                @if ($isPending)
+                    <div style="margin-top: 20px; color: red;">
+                        ※承認待ちのため修正はできません。
+                    </div>
+                @else
+                    <div class="btn-container">
+                        <button type="submit" class="btn btn-submit">修正申請</button>
+                    </div>
+                @endif
+
+            {{-- エラーメッセージ --}}
+                @if(session('error'))
+                    <div class="alert alert-danger" style="margin-top: 20px;">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
 
             {{-- 戻るリンク --}}
             <div style="margin-top: 20px;">
