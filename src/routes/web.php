@@ -53,7 +53,12 @@ Route::post('/admin/login', [AuthController::class, 'adminlogin'])->name('admin.
 Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('/attendance/list', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/attendance/{id}', [AdminController::class, 'show'])->name('admin.attendance.show');
+    Route::post('/attendance/update/{id}', [AttendanceController::class, 'update'])->name('admin.attendance.update');
     Route::post('/logout', [AuthController::class, 'adminlogout'])->name('admin.logout');
     Route::get('/staff/list', [AdminController::class, 'staffListShow'])->name('admin.staff.list');
     Route::get('/attendance/staff/{id}', [AdminController::class, 'StaffAttendanceShow'])->name('admin.staff.attendance');
+    Route::get('/stamp_correction_request/list',[AdminController::class,'adminApplicationListShow'])->name('admin.application.list');
+    Route::get('/stamp_correction_request/approve/{id}',[AdminController::class,'applicationDetail'])->name('admin.application.detail');
+    Route::post('/admin/stamp_correction_request/approve/{id}', [AdminController::class, 'approve'])->name('admin.attendance.approve');
+    Route::post('/admin/stamp_correction_request/reject/{id}', [AdminController::class, 'reject'])->name('admin.attendance.reject');
 });

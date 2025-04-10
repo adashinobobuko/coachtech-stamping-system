@@ -236,46 +236,46 @@ class AttendanceController extends Controller
 
         $baseDate = \Carbon\Carbon::parse($application->old_time)->toDateString();
 
-    $user_id = $application->user_id;
+        $user_id = $application->user_id;
 
-    $clock_in = Attendance::where('user_id', $user_id)
-        ->whereDate('timestamp', $baseDate)
-        ->where('type', 'clock_in')
-        ->first()->timestamp ?? null;
+        $clock_in = Attendance::where('user_id', $user_id)
+            ->whereDate('timestamp', $baseDate)
+            ->where('type', 'clock_in')
+            ->first()->timestamp ?? null;
 
-    $clock_out = Attendance::where('user_id', $user_id)
-        ->whereDate('timestamp', $baseDate)
-        ->where('type', 'clock_out')
-        ->first()->timestamp ?? null;
+        $clock_out = Attendance::where('user_id', $user_id)
+            ->whereDate('timestamp', $baseDate)
+            ->where('type', 'clock_out')
+            ->first()->timestamp ?? null;
 
-    $break_starts = Attendance::where('user_id', $user_id)
-        ->whereDate('timestamp', $baseDate)
-        ->where('type', 'break_start')
-        ->orderBy('timestamp')->get();
+        $break_starts = Attendance::where('user_id', $user_id)
+            ->whereDate('timestamp', $baseDate)
+            ->where('type', 'break_start')
+            ->orderBy('timestamp')->get();
 
-    $break_ends = Attendance::where('user_id', $user_id)
-        ->whereDate('timestamp', $baseDate)
-        ->where('type', 'break_end')
-        ->orderBy('timestamp')->get();
+        $break_ends = Attendance::where('user_id', $user_id)
+            ->whereDate('timestamp', $baseDate)
+            ->where('type', 'break_end')
+            ->orderBy('timestamp')->get();
 
-    $record = $application->attendance;
+        $record = $application->attendance;
 
-    $breakPairs = [];
-    for ($i = 0; $i < min($break_starts->count(), $break_ends->count()); $i++) {
-        $breakPairs[] = [
-            'start' => $break_starts[$i]->timestamp->format('H:i'),
-            'end' => $break_ends[$i]->timestamp->format('H:i'),
-        ];
-    }
+        $breakPairs = [];
+        for ($i = 0; $i < min($break_starts->count(), $break_ends->count()); $i++) {
+            $breakPairs[] = [
+                'start' => $break_starts[$i]->timestamp->format('H:i'),
+                'end' => $break_ends[$i]->timestamp->format('H:i'),
+            ];
+        }
 
-    return view('staff.attendance.detail', [
-        'application' => $application,
-        'record' => $record,
-        'clockIn' => $clock_in,
-        'clockOut' => $clock_out,
-        'breakPairs' => $breakPairs,
-        'isPending' => true,
-    ]);
+        return view('staff.attendance.detail', [
+            'application' => $application,
+            'record' => $record,
+            'clockIn' => $clock_in,
+            'clockOut' => $clock_out,
+            'breakPairs' => $breakPairs,
+            'isPending' => true,
+        ]);
 
     }
 

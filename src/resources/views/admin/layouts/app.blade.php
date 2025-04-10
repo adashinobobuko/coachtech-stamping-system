@@ -19,7 +19,7 @@
         <div class="taball">
             <a href="{{ route('admin.index') }}">勤怠一覧</a>
             <a href="{{ route('admin.staff.list') }}">スタッフ一覧</a>
-            <a href="">申請一覧</a>
+            <a href="{{ route('admin.application.list') }}">申請一覧</a>
             @if (Auth::check())
             <div class="logged-out">
                 <form id="logout-form" action="{{ route('admin.logout') }}" method="POST">
