@@ -155,7 +155,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'ログイン情報が正しくありません。',
+            'email' => 'ログイン情報が登録されていません。',
         ])->onlyInput('email');
     }
 
@@ -184,7 +184,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'ログイン情報が正しくありません。',
+            'email' => 'ログイン情報が登録されていません。',
         ])->onlyInput('email');
     }
 

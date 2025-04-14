@@ -2,6 +2,7 @@
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/index.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" href="{{ asset('css/attendance_list.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')
@@ -32,8 +33,8 @@
                     @foreach ($attendances as $date => $data)
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($date)->format('m/d') }}（{{ ['日','月','火','水','木','金','土'][\Carbon\Carbon::parse($date)->dayOfWeek] }}）</td>
-                            <td>{{ $data['clock_in'] ?? '--:--' }}</td>
-                            <td>{{ $data['clock_out'] ?? '--:--' }}</td>
+                            <td>{{ $data['clock_in'] ?? '' }}</td>
+                            <td>{{ $data['clock_out'] ?? '' }}</td>
                             <td>{{ $data['break'] ?? '0:00' }}</td>
                             <td>{{ $data['total'] }}</td>
                             <td>

@@ -39,8 +39,8 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
     Route::get('/stamp_correction_request/list', [AttendanceController::class, 'applicationindex'])->name('attendance.applications');
     Route::get('/attendance/{id}', [AttendanceController::class, 'detail'])->name('staff.attendance.show');
-    Route::get('/application/detail/{id}', [AttendanceController::class, 'applicationDetail'])->name('staff.application.show');
     Route::post('/attendance/update/{id}', [AttendanceController::class, 'update'])->name('attendance.update');
+    Route::get('/application/detail/{id}', [AttendanceController::class, 'applicationDetail'])->name('staff.application.show');
 
     Route::post('/logout', [AuthController::class, 'staffLogout'])->name('staff.logout');
 });

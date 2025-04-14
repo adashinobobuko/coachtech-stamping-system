@@ -2,6 +2,7 @@
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/index.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" href="{{ asset('css/application_list.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')

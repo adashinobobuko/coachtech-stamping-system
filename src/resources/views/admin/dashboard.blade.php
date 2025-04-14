@@ -2,6 +2,7 @@
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/index.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')
@@ -20,7 +21,7 @@
                 <th class="border px-2 py-1">名前</th>
                 <th class="border px-2 py-1">出勤</th>
                 <th class="border px-2 py-1">退勤</th>
-                <th class="border px-2 py-1">休憩</th>
+                <th class="border px-+-+-2 py-1">休憩</th>
                 <th class="border px-2 py-1">合計</th>
                 <th class="border px-2 py-1">詳細</th>
             </tr>
@@ -29,8 +30,8 @@
             @foreach ($attendances as $attendance)
             <tr>
                 <td class="border px-2 py-1">{{ $attendance->user->name }}</td>
-                <td>{{ $attendance->clock_in ? $attendance->clock_in->format('H:i') : '-' }}</td>
-                <td>{{ $attendance->clock_out ? $attendance->clock_out->format('H:i') : '-' }}</td>
+                <td>{{ $attendance->clock_in ? $attendance->clock_in->format('H:i') : '' }}</td>
+                <td>{{ $attendance->clock_out ? $attendance->clock_out->format('H:i') : '' }}</td>
                 <td>{{ gmdate('H:i', $attendance->break_minutes * 60) }}</td>
                 <td>{{ gmdate('H:i', $attendance->work_minutes * 60) }}</td>
                 <td class="border px-2 py-1">
