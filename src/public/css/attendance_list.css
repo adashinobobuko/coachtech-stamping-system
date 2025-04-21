@@ -1,0 +1,94 @@
+body {
+    background-color: #f3f3f3;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.title-text {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 40px 0 20px 80px;
+}
+
+/* 月切替ナビ */
+.month-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+}
+
+.month-nav .btn {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+}
+
+.current-month {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* 勤怠テーブル */
+.attendance-table {
+    width: 90%;
+    max-width: 900px;
+    margin: 0 auto 60px;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.attendance-table thead {
+    background-color: #eee;
+}
+
+.attendance-table th,
+.attendance-table td {
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+    color :737373;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.attendance-table th {
+    font-weight: bold;
+}
+
+.attendance-in{
+    color: #737373;
+}
+
+/* 詳細ボタン */
+.btn-detail {
+    display: inline-block;
+    color: #000000;
+    padding: 6px 12px;
+    font-weight: bold;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.btn-detail:hover {
+    background-color: #444;
+    color: #fff;
+}
+
+/* 詳細なし（無効ボタン） */
+.btn-detail-disabled {
+    display: inline-block;
+    background-color: #ccc;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+}

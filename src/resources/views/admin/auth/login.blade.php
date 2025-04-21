@@ -14,7 +14,7 @@
       @endif
   </div>
   <div class="login-form__heading">
-    <h3>ログイン</h3>
+    <h3>管理者ログイン</h3>
   </div>
   <form class="form" action="{{ route('admin.login.submit') }}" method="post">
     @csrf
@@ -38,6 +38,6 @@
         <button type="submit" class="form__button-submit">ログインする</button>
       </div>
     </form>
-
+    
 </div>
 @endsection

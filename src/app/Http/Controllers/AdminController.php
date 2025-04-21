@@ -31,23 +31,27 @@ class AdminController extends Controller
             $breakEnd = $records->firstWhere('type', 'break_end')?->timestamp;
 
             // 承認済みの修正申請があれば、修正後の打刻を反映
-            $application = AttendanceApplication::where('attendance_id', $records->first()->id)
+            $applications = AttendanceApplication::where('attendance_id', $records->first()->id)
                 ->where('status', '承認')
-                ->latest()
-                ->first();
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-            if ($application) {
-                $clockIn = $application->clock_in ? Carbon::parse($application->clock_in) : $clockIn;
-                $clockOut = $application->clock_out ? Carbon::parse($application->clock_out) : $clockOut;
-                $breakStart = $application->break_start ? Carbon::parse($application->break_start) : $breakStart;
-                $breakEnd = $application->break_end ? Carbon::parse($application->break_end) : $breakEnd;
-            }
+            // 申請に clock_in / clock_out があれば優先
+            $clockInRaw = $applications->where('event_type', 'clock_in')->first()?->new_time ?? $clockIn;
+            $clockOutRaw = $applications->where('event_type', 'clock_out')->first()?->new_time ?? $clockOut;
 
-            // 休憩時間計算（そのままでOK）
+            $clockIn = $clockInRaw ? Carbon::parse($clockInRaw) : null;
+            $clockOut = $clockOutRaw ? Carbon::parse($clockOutRaw) : null;
+
+            // 休憩計算
+            $breakStarts = $applications->where('event_type', 'break_start')->values();
+            $breakEnds = $applications->where('event_type', 'break_end')->values();
+
             $breakMinutes = 0;
-
-            if ($breakStart && $breakEnd) {
-                $breakMinutes += $breakEnd->diffInMinutes($breakStart);
+            for ($i = 0; $i < min($breakStarts->count(), $breakEnds->count()); $i++) {
+                $start = Carbon::parse($breakStarts[$i]->new_time);
+                $end = Carbon::parse($breakEnds[$i]->new_time);
+                $breakMinutes += $end->diffInMinutes($start);
             }
 
             $workMinutes = ($clockIn && $clockOut) ? $clockOut->diffInMinutes($clockIn) - $breakMinutes : 0;
@@ -75,47 +79,66 @@ class AdminController extends Controller
             ->get();
 
         $user = User::findOrFail($user_id);
-
-        $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
-        $clockOut = $records->firstWhere('type', 'clock_out')?->timestamp;
-
-        $breaks = $records->filter(function ($r) {
-            return str_starts_with($r->type, 'break');
-        })->sortBy('timestamp')->values();
-
-        $break1Start = optional($breaks->get(0))->timestamp?->format('H:i');
-        $break1End   = optional($breaks->get(1))->timestamp?->format('H:i');
-        $break2Start = optional($breaks->get(2))->timestamp?->format('H:i');
-        $break2End   = optional($breaks->get(3))->timestamp?->format('H:i');
-
-        $note = ''; // 必要に応じて AttendanceApplication から取得可
-
-        $record = $records->first(); // 代表レコードとして（IDなどに使用）
+        $record = $records->first(); // 代表レコードとして使用
 
         if (!$record) {
             abort(404, '打刻データが見つかりません');
         }
 
-        // 修正申請の反映
-        $application = \App\Models\AttendanceApplication::where('attendance_id', $records->first()?->id)
-            ->where('status', '承認')
-            ->latest()
-            ->first();
+        // デフォルト（Attendance）から clockIn / clockOut
+        $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
+        $clockOut = $records->firstWhere('type', 'clock_out')?->timestamp;
 
-        if ($application) {
-            $clockIn = $application->clock_in ? Carbon::parse($application->clock_in) : $clockIn;
-            $clockOut = $application->clock_out ? Carbon::parse($application->clock_out) : $clockOut;
-            $break1Start = $application->break_start;
-            $break1End = $application->break_end;
-            $break2Start = $application->break_start2;
-            $break2End = $application->break_end2;
-            $note = $application->note ?? '';
+        // デフォルトの休憩ペア（Attendance）
+        $breaks = $records->filter(fn($r) => str_starts_with($r->type, 'break'))
+            ->sortBy('timestamp')->values();
+
+        $breakPairs = [];
+        for ($i = 0; $i < $breaks->count() - 1; $i += 2) {
+            $breakPairs[] = [
+                'start' => optional($breaks->get($i))->timestamp?->format('H:i'),
+                'end' => optional($breaks->get($i + 1))->timestamp?->format('H:i'),
+            ];
+        }
+
+        // 承認済みの申請を全取得
+        $applications = AttendanceApplication::where('attendance_id', $record->id)
+            ->where('status', '承認')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // 申請に clock_in / clock_out があれば優先
+        $clockInRaw = $applications->where('event_type', 'clock_in')->first()?->new_time ?? $clockIn;
+        $clockOutRaw = $applications->where('event_type', 'clock_out')->first()?->new_time ?? $clockOut;
+
+        $clockIn = $clockInRaw ? Carbon::parse($clockInRaw) : null;
+        $clockOut = $clockOutRaw ? Carbon::parse($clockOutRaw) : null;
+
+        // note は一番新しい申請から取得（または null）
+        $note = $applications->first()?->note ?? '';
+
+        // 申請から休憩時間を取得（上書き）
+        $startApps = $applications->where('event_type', 'break_start')->values();
+        $endApps = $applications->where('event_type', 'break_end')->values();
+
+        if ($startApps->count() && $endApps->count()) {
+            $breakPairs = []; // 上書きする
+            $pairCount = min($startApps->count(), $endApps->count());
+
+            for ($i = 0; $i < $pairCount; $i++) {
+                $start = Carbon::parse($startApps[$i]->new_time)->format('H:i');
+                $end = Carbon::parse($endApps[$i]->new_time)->format('H:i');
+
+                $breakPairs[] = [
+                    'start' => $start,
+                    'end' => $end,
+                ];
+            }
         }
 
         return view('admin.attendance.show', compact(
             'user', 'date', 'clockIn', 'clockOut', 'record',
-            'break1Start', 'break1End', 'break2Start', 'break2End',
-            'note'
+            'breakPairs', 'note'
         ));
     }
 
@@ -157,63 +180,9 @@ class AdminController extends Controller
         return view('admin.staff_list', compact('users'));
     }
 
-    public function StaffAttendanceShow($user_id)
-    {
-        $user = User::findOrFail($user_id);
-        $currentMonth = now()->format('Y-m');
-
-        // 勤怠レコード取得＆修正申請反映
-        $rawAttendances = Attendance::where('user_id', $user_id)
-            ->orderBy('timestamp')
-            ->get()
-            ->groupBy(function ($record) {
-                return $record->timestamp->toDateString(); // 日付でまとめる
-            });
-
-        $attendances = $rawAttendances->map(function ($records, $date) {
-            $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
-            $clockOut = $records->firstWhere('type', 'clock_out')?->timestamp;
-            $breakStart = $records->firstWhere('type', 'break_start')?->timestamp;
-            $breakEnd = $records->firstWhere('type', 'break_end')?->timestamp;
-
-            // 代表レコード
-            $base = $records->first();
-
-            // 修正申請の反映（承認済み）
-            $application = \App\Models\AttendanceApplication::where('attendance_id', $base->id)
-                ->where('status', '承認')
-                ->latest()
-                ->first();
-
-            if ($application) {
-                $clockIn = $application->clock_in ? Carbon::parse($application->clock_in) : $clockIn;
-                $clockOut = $application->clock_out ? Carbon::parse($application->clock_out) : $clockOut;
-                $breakStart = $application->break_start ? Carbon::parse($application->break_start) : $breakStart;
-                $breakEnd = $application->break_end ? Carbon::parse($application->break_end) : $breakEnd;
-            }
-
-            // 勤務時間・休憩時間計算
-            $breakMinutes = ($breakStart && $breakEnd) ? $breakEnd->diffInMinutes($breakStart) : 0;
-            $workMinutes = ($clockIn && $clockOut) ? $clockOut->diffInMinutes($clockIn) - $breakMinutes : 0;
-
-            return (object)[
-                'date' => $date,
-                'clock_in' => $clockIn,
-                'clock_out' => $clockOut,
-                'break_minutes' => $breakMinutes,
-                'work_minutes' => $workMinutes,
-                'record_id' => $base->id,
-            ];
-        });
-
-        return view('admin.staff_attendance', compact('user', 'attendances', 'currentMonth'));
-    }
-
     public function adminApplicationListShow(Request $request)
     {
-        $status = $request->input('status'); // 任意でフィルタ
-
-        //dd($status); // 一度だけ
+        $status = $request->input('status', '承認待ち'); // ← デフォルトで承認待ち
 
         $query = AttendanceApplication::with(['user', 'attendance']);
 
@@ -226,67 +195,178 @@ class AdminController extends Controller
         return view('admin.application.admin_application_list', compact('applications'));
     }
 
+    public function StaffAttendanceShow($user_id)
+    {
+        $user = User::findOrFail($user_id);
+        $currentMonth = now()->format('Y-m');
+
+        $rawAttendances = Attendance::where('user_id', $user_id)
+            ->orderBy('timestamp')
+            ->get()
+            ->groupBy(function ($record) {
+                return $record->timestamp->toDateString();
+            });
+
+        $attendances = $rawAttendances->map(function ($records, $date) {
+            $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
+            $clockOut = $records->firstWhere('type', 'clock_out')?->timestamp;
+
+            $base = $records->first();
+
+            $applications = AttendanceApplication::where('attendance_id', $base->id)
+                ->where('status', '承認')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $clockIn = $applications->where('event_type', 'clock_in')->first()?->new_time ?? $clockIn;
+            $clockOut = $applications->where('event_type', 'clock_out')->first()?->new_time ?? $clockOut;
+
+            $breakStarts = $applications->where('event_type', 'break_start')->values();
+            $breakEnds = $applications->where('event_type', 'break_end')->values();
+
+            $breakMinutes = 0;
+
+            if ($breakStarts->count() && $breakEnds->count()) {
+                for ($i = 0; $i < min($breakStarts->count(), $breakEnds->count()); $i++) {
+                    $start = Carbon::parse($breakStarts[$i]->new_time);
+                    $end = Carbon::parse($breakEnds[$i]->new_time);
+                    $breakMinutes += $end->diffInMinutes($start);
+                }
+            } else {
+                $breaks = $records->filter(fn($r) => str_starts_with($r->type, 'break'))
+                    ->sortBy('timestamp')->values();
+
+                for ($i = 0; $i < $breaks->count() - 1; $i += 2) {
+                    $start = $breaks->get($i)?->timestamp;
+                    $end = $breaks->get($i + 1)?->timestamp;
+                    if ($start && $end) {
+                        $breakMinutes += $end->diffInMinutes($start);
+                    }
+                }
+            }
+
+            $workMinutes = ($clockIn && $clockOut)
+                ? Carbon::parse($clockOut)->diffInMinutes(Carbon::parse($clockIn)) - $breakMinutes
+                : 0;
+
+            return (object)[
+                'date' => $date,
+                'clock_in' => $clockIn ? Carbon::parse($clockIn) : null,
+                'clock_out' => $clockOut ? Carbon::parse($clockOut) : null,
+                'break_minutes' => $breakMinutes,
+                'work_minutes' => $workMinutes,
+                'record_id' => $base->id,
+            ];
+        });
+
+        return view('admin.staff_attendance', compact('user', 'attendances', 'currentMonth'));
+    }
+
     // 管理者から見た勤怠申請詳細
     public function applicationDetail($id)
     {
-        $application = AttendanceApplication::with(['user', 'attendance'])->findOrFail($id);
-        $record = $application->attendance;
+        $baseApplication = AttendanceApplication::with(['user', 'attendance'])->findOrFail($id);
+        $record = $baseApplication->attendance;
+        $user = $baseApplication->user;
 
-        $baseDate = \Carbon\Carbon::parse($application->old_time)->toDateString();
+        $baseDate = Carbon::parse($baseApplication->old_time)->toDateString();
 
-        // 申請された打刻を優先的に表示（Carbonでフォーマット統一）
-        $clockIn = $application->clock_in
-            ? \Carbon\Carbon::parse($application->clock_in)
-            : Attendance::where('user_id', $record->user_id)
-                ->whereDate('timestamp', $baseDate)
-                ->where('type', 'clock_in')
-                ->first()->timestamp ?? null;
+        $applications = AttendanceApplication::where('attendance_id', $record->id)
+            ->where('user_id', $record->user_id)
+            ->where('status', '承認待ち')
+            ->orderBy('created_at', 'asc')
+            ->get();
 
-        $clockOut = $application->clock_out
-            ? \Carbon\Carbon::parse($application->clock_out)
-            : Attendance::where('user_id', $record->user_id)
-                ->whereDate('timestamp', $baseDate)
-                ->where('type', 'clock_out')
-                ->first()->timestamp ?? null;
-
-        // 休憩ペア
+        // ↓↓↓ ここから分岐を追加（複数申請対応）
+        $clockIn = null;
+        $clockOut = null;
         $breakPairs = [];
 
-        if ($application->break_start && $application->break_end) {
-            $breakPairs[] = [
-                'start' => $application->break_start,
-                'end' => $application->break_end,
-            ];
-        }
+        if ($baseApplication->event_type === '複数申請') {
+            // note から出勤・退勤・休憩を抽出
+            $note = $baseApplication->note;
 
-        if ($application->break_start2 && $application->break_end2) {
-            $breakPairs[] = [
-                'start' => $application->break_start2,
-                'end' => $application->break_end2,
-            ];
-        }
+            preg_match('/出勤：(\d{2}:\d{2})/', $note, $inMatch);
+            preg_match('/退勤：(\d{2}:\d{2})/', $note, $outMatch);
+            preg_match_all('/休憩\d+：(\d{2}:\d{2})～(\d{2}:\d{2})/', $note, $breakMatches, PREG_SET_ORDER);
 
-        // 念のため不足分はAttendanceモデルから補完
-        if (empty($breakPairs)) {
-            $breakStarts = Attendance::where('user_id', $record->user_id)
-                ->whereDate('timestamp', $baseDate)
-                ->where('type', 'break_start')
-                ->orderBy('timestamp')->get();
+            if (!empty($inMatch[1])) {
+                $clockIn = Carbon::createFromFormat('H:i', $inMatch[1]);
+            }
+            if (!empty($outMatch[1])) {
+                $clockOut = Carbon::createFromFormat('H:i', $outMatch[1]);
+            }
 
-            $breakEnds = Attendance::where('user_id', $record->user_id)
-                ->whereDate('timestamp', $baseDate)
-                ->where('type', 'break_end')
-                ->orderBy('timestamp')->get();
-
-            for ($i = 0; $i < min($breakStarts->count(), $breakEnds->count()); $i++) {
+            foreach ($breakMatches as $match) {
                 $breakPairs[] = [
-                    'start' => $breakStarts[$i]->timestamp->format('H:i'),
-                    'end' => $breakEnds[$i]->timestamp->format('H:i'),
+                    'start' => $match[1],
+                    'end' => $match[2],
                 ];
+            }
+        } else {
+            // ↓↓↓ 従来の個別申請タイプ処理
+            $clockInRaw = $applications->where('event_type', 'clock_in')->first()?->new_time
+                ?? Attendance::where('user_id', $record->user_id)
+                    ->whereDate('timestamp', $baseDate)
+                    ->where('type', 'clock_in')
+                    ->first()?->timestamp;
+
+            $clockOutRaw = $applications->where('event_type', 'clock_out')->first()?->new_time
+                ?? Attendance::where('user_id', $record->user_id)
+                    ->whereDate('timestamp', $baseDate)
+                    ->where('type', 'clock_out')
+                    ->first()?->timestamp;
+
+            $clockIn = $clockInRaw ? \Carbon\Carbon::parse($clockInRaw) : null;
+            $clockOut = $clockOutRaw ? \Carbon\Carbon::parse($clockOutRaw) : null;
+
+            $breakStarts = $applications->where('event_type', 'break_start')->values();
+            $breakEnds = $applications->where('event_type', 'break_end')->values();
+
+            if ($breakStarts->count() && $breakEnds->count()) {
+                for ($i = 0; $i < min($breakStarts->count(), $breakEnds->count()); $i++) {
+                    $start = Carbon::parse($breakStarts[$i]->new_time)->format('H:i');
+                    $end = Carbon::parse($breakEnds[$i]->new_time)->format('H:i');
+                    $breakPairs[] = [
+                        'start' => $start,
+                        'end' => $end,
+                    ];
+                }
+            }
+
+            if (empty($breakPairs)) {
+                $fallbackStarts = Attendance::where('user_id', $record->user_id)
+                    ->whereDate('timestamp', $baseDate)
+                    ->where('type', 'break_start')
+                    ->orderBy('timestamp')->get();
+
+                $fallbackEnds = Attendance::where('user_id', $record->user_id)
+                    ->whereDate('timestamp', $baseDate)
+                    ->where('type', 'break_end')
+                    ->orderBy('timestamp')->get();
+
+                for ($i = 0; $i < min($fallbackStarts->count(), $fallbackEnds->count()); $i++) {
+                    $breakPairs[] = [
+                        'start' => Carbon::parse($fallbackStarts[$i]->timestamp)->format('H:i'),
+                        'end' => Carbon::parse($fallbackEnds[$i]->timestamp)->format('H:i'),
+                    ];
+                }
             }
         }
 
-        $isPending = true; // 管理者画面＝未承認の申請中
+        $isPending = true;
+
+        $application = $applications->first(); // 代表表示用
+
+        $isPending = $baseApplication->status === '承認待ち';
+        $isApproved = $baseApplication->status === '承認';
+
+        $noteRaw = $baseApplication->note ?? '';
+        if (preg_match('/備考：(.+)/u', $noteRaw, $matches)) {
+            $noteToDisplay = trim($matches[1]);
+        } else {
+            $noteToDisplay = $noteRaw;
+        }
 
         return view('staff.attendance.detail', compact(
             'application',
@@ -294,7 +374,9 @@ class AdminController extends Controller
             'clockIn',
             'clockOut',
             'breakPairs',
-            'isPending'
+            'isPending',
+            'isApproved',
+            'noteToDisplay'
         ));
     }
 

@@ -12,11 +12,11 @@
     {{-- タブ --}}
     <div class="tab-menu">
         <a href="{{ route('admin.application.list', ['status' => '承認待ち']) }}"
-           class="{{ request('status', '承認待ち') === '承認待ち' ? 'active' : '' }}">
+        class="{{ ($status ?? '') === '承認待ち' ? 'active' : '' }}">
             承認待ち
         </a>
         <a href="{{ route('admin.application.list', ['status' => '承認']) }}"
-           class="{{ request('status') === '承認' ? 'active' : '' }}">
+        class="{{ ($status ?? '') === '承認' ? 'active' : '' }}">
             承認済み
         </a>
     </div>

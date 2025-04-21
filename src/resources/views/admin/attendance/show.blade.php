@@ -31,15 +31,20 @@
             <tr class="border-b">
                 <th class="p-2">休憩</th>
                 <td class="p-2">
-                    <input type="time" name="break_start" value="{{ $break1Start }}"> 〜
-                    <input type="time" name="break_end" value="{{ $break1End }}">
-                </td>
-            </tr>
-            <tr class="border-b">
-                <th class="p-2">休憩2</th>
-                <td class="p-2">
-                    <input type="time" name="break_start2" value="{{ $break2Start }}"> 〜
-                    <input type="time" name="break_end2" value="{{ $break2End }}">
+                    @if (count($breakPairs) > 0)
+                        @foreach ($breakPairs as $index => $pair)
+                            @php
+                                $breakStartName = 'break_start_' . ($index + 1);
+                                $breakEndName = 'break_end_' . ($index + 1);
+                            @endphp
+                            <div style="margin-bottom: 8px;">
+                                <label>休憩{{ $index + 1 }}</label>
+                                <input type="time" name="{{ $breakStartName }}" value="{{ $pair['start'] ?? '' }}" style="width: 100px;">
+                                〜
+                                <input type="time" name="{{ $breakEndName }}" value="{{ $pair['end'] ?? '' }}" style="width: 100px;">
+                            </div>
+                        @endforeach
+                    @endif
                 </td>
             </tr>
             <tr class="border-b">

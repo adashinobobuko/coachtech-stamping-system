@@ -17,24 +17,30 @@
             </a>
         </div>
         <div class="taball">
-            <a href="{{ route('staff.index') }}">勤怠</a>
-            <a href="{{ route('attendance.list') }}">勤怠一覧</a>
-            <a href="{{ route('attendance.applications') }}">申請</a>
-            @if (Auth::check())
-            <div class="logged-out">
-                <a href=""  onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    ログアウト
-                </a>
-                <form id="logout-form" action="{{ route('staff.logout') }}" method="POST" style="display: none;">
+            @if (auth('admin')->check())
+                {{-- 管理者用メニュー --}}
+                <a href="{{ route('admin.index') }}">勤怠一覧</a>
+                <a href="{{ route('admin.staff.list') }}">スタッフ一覧</a>
+                <a href="{{ route('admin.application.list') }}">申請一覧</a>
+                <div class="logged-out">
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form-admin').submit();">ログアウト</a>
+                    <form id="logout-form-admin" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
                         @csrf
-                </form>
-            </div>
-            @else
-            <div class="tologin">
-                <a href="{{ route('staff.login') }}">ログイン</a>
-            </div>
+                    </form>
+                </div>
+            @elseif (Auth::check())
+                {{-- スタッフ用メニュー --}}
+                <a href="{{ route('staff.index') }}">勤怠</a>
+                <a href="{{ route('attendance.list') }}">勤怠一覧</a>
+                <a href="{{ route('attendance.applications') }}">申請</a>
+                <div class="logged-out">
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form-staff').submit();">ログアウト</a>
+                    <form id="logout-form-staff" action="{{ route('staff.logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                </div>
             @endif
-        </div>        
+        </div>
     </div>    
     <main>@yield('content')</main>
 </body>

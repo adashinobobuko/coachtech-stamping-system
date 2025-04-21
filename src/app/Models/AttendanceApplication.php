@@ -13,6 +13,7 @@ class AttendanceApplication extends Model
         'attendance_id',
         'user_id',
         'type',
+        'event_type',
         'old_time',
         'new_time',
         'clock_in',

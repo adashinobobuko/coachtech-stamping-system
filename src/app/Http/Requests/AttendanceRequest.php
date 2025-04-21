@@ -30,11 +30,12 @@ class AttendanceRequest extends FormRequest
             'break_end_1' => ['nullable', 'date_format:H:i', 'after_or_equal:break_start_1'],
             'break_start_2' => ['nullable', 'date_format:H:i'],
             'break_end_2' => ['nullable', 'date_format:H:i', 'after_or_equal:break_start_2'],
-            'note' => ['nullable', 'string'],
+            'note' => ['required', 'string'],
             'is_correction' => ['required', 'boolean'],
         ];
     }
 
+    // FIXME:メッセージを指定のシンプルなものにする、備考欄必要
     public function messages(): array
     {
         return [
@@ -51,9 +52,11 @@ class AttendanceRequest extends FormRequest
             'break_end_2.after_or_equal' => '休憩2の終了は開始時刻より後にしてください。',
             'is_correction.required' => '修正申請かどうかの情報が不足しています。',
             'is_correction.boolean' => '修正申請の形式が不正です。',
+            'note.required' => '備考を記入してください',
         ];
     }
 
+    // TODO:いらないかも？
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {

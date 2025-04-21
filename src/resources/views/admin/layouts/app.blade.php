@@ -16,24 +16,21 @@
                 <img src="{{ asset('images/logo.svg') }}" alt="coachtechのロゴ">
             </a>
         </div>
-        <div class="taball">
-            <a href="{{ route('admin.index') }}">勤怠一覧</a>
-            <a href="{{ route('admin.staff.list') }}">スタッフ一覧</a>
-            <a href="{{ route('admin.application.list') }}">申請一覧</a>
-            @if (Auth::check())
-            <div class="logged-out">
-                <form id="logout-form" action="{{ route('admin.logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="text-red-600 hover:underline">ログアウト</button>
-                </form>
+
+        @if (auth('admin')->check())
+            <div class="taball">
+                <a href="{{ route('admin.index') }}">勤怠一覧</a>
+                <a href="{{ route('admin.staff.list') }}">スタッフ一覧</a>
+                <a href="{{ route('admin.application.list') }}">申請一覧</a>
+                <div class="logged-out">
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form-staff').submit();">ログアウト</a>
+                    <form id="logout-form-staff" action="{{ route('staff.logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                </div>
             </div>
-            @else
-            <div class="tologin">
-                <a href="{{ route('admin.login') }}">ログイン</a>
-            </div>
-            @endif
-        </div>        
-    </div>    
+        @endif
+    </div>
     <main>@yield('content')</main>
 </body>
 </html>

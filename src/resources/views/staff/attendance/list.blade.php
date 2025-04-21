@@ -32,11 +32,11 @@
                 <tbody>
                     @foreach ($attendances as $date => $data)
                         <tr>
-                            <td>{{ \Carbon\Carbon::parse($date)->format('m/d') }}（{{ ['日','月','火','水','木','金','土'][\Carbon\Carbon::parse($date)->dayOfWeek] }}）</td>
-                            <td>{{ $data['clock_in'] ?? '' }}</td>
-                            <td>{{ $data['clock_out'] ?? '' }}</td>
-                            <td>{{ $data['break'] ?? '0:00' }}</td>
-                            <td>{{ $data['total'] }}</td>
+                            <td class="attendance-in">{{ \Carbon\Carbon::parse($date)->format('m/d') }}（{{ ['日','月','火','水','木','金','土'][\Carbon\Carbon::parse($date)->dayOfWeek] }}）</td>
+                            <td class="attendance-in">{{ $data['clock_in'] ?? '' }}</td>
+                            <td class="attendance-in">{{ $data['clock_out'] ?? '' }}</td>
+                            <td class="attendance-in">{{ $data['break'] ?? '0:00' }}</td>
+                            <td class="attendance-in">{{ $data['total'] }}</td>
                             <td>
                             @if (isset($data['id']))
                                 <a href="{{ route('staff.attendance.show', ['id' => $data['id']]) }}" class="btn-detail">詳細</a>
