@@ -49,7 +49,9 @@ cp .env.example .env  exit
 docker-compose exec app php artisan migrate  
 docker-compose exec app php artisan db:seed  
 管理者シーディングについてかく
+キージェネ、mailhog等の設定もかく
 AdminSeeder
+AttendanceSeeder
 
 DB_CONNECTION=mysql  
 DB_HOST=mysql  

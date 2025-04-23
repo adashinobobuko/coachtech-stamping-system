@@ -3,95 +3,64 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Carbon\Carbon;
 
 class AttendanceRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules(): array
     {
         return [
             'clock_in' => ['required', 'date_format:H:i'],
-            'clock_out' => ['required', 'date_format:H:i', 'after_or_equal:clock_in'],
+            'clock_out' => ['required', 'date_format:H:i'],
             'break_start_1' => ['nullable', 'date_format:H:i'],
-            'break_end_1' => ['nullable', 'date_format:H:i', 'after_or_equal:break_start_1'],
+            'break_end_1' => ['nullable', 'date_format:H:i'],
             'break_start_2' => ['nullable', 'date_format:H:i'],
-            'break_end_2' => ['nullable', 'date_format:H:i', 'after_or_equal:break_start_2'],
-            'note' => ['required', 'string'],
+            'break_end_2' => ['nullable', 'date_format:H:i'],
+            'note' => ['required_if:is_correction,true', 'string'],
             'is_correction' => ['required', 'boolean'],
         ];
     }
 
-    // FIXME:メッセージを指定のシンプルなものにする、備考欄必要
     public function messages(): array
     {
         return [
-            'clock_in.required' => '出勤時刻を入力してください。',
-            'clock_in.date_format' => '出勤時刻の形式が正しくありません。',
-            'clock_out.required' => '退勤時刻を入力してください。',
-            'clock_out.date_format' => '退勤時刻の形式が正しくありません。',
-            'clock_out.after_or_equal' => '退勤時刻は出勤時刻と同じか、それより後にしてください。',
-            'break_start_1.date_format' => '休憩1の開始時刻の形式が正しくありません。',
-            'break_end_1.date_format' => '休憩1の終了時刻の形式が正しくありません。',
-            'break_end_1.after_or_equal' => '休憩1の終了は開始時刻より後にしてください。',
-            'break_start_2.date_format' => '休憩2の開始時刻の形式が正しくありません。',
-            'break_end_2.date_format' => '休憩2の終了時刻の形式が正しくありません。',
-            'break_end_2.after_or_equal' => '休憩2の終了は開始時刻より後にしてください。',
-            'is_correction.required' => '修正申請かどうかの情報が不足しています。',
-            'is_correction.boolean' => '修正申請の形式が不正です。',
-            'note.required' => '備考を記入してください',
+            'note.required_if' => '備考を記入してください。',
         ];
     }
 
-    // TODO:いらないかも？
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
             $clockIn = $this->input('clock_in');
             $clockOut = $this->input('clock_out');
+
             $breakStart1 = $this->input('break_start_1');
             $breakEnd1 = $this->input('break_end_1');
             $breakStart2 = $this->input('break_start_2');
             $breakEnd2 = $this->input('break_end_2');
-            $isCorrection = $this->input('is_correction');
-            $note = $this->input('note');
 
-            if (strtotime($clockIn) > strtotime($clockOut)) {
-                $validator->errors()->add('clock_in', '出勤時刻は退勤時刻より早くなければなりません。');
+            if ($clockIn && $clockOut && Carbon::parse($clockIn)->gt(Carbon::parse($clockOut))) {
+                $validator->errors()->add('clock_in', '出勤時間もしくは退勤時間が不適切な値です。');
             }
 
-            if ($isCorrection && empty($note)) {
-                $validator->errors()->add('note', '修正申請の場合は備考を記入してください。');
-            }
-
-            if (($breakStart1 && strtotime($breakStart1) < strtotime($clockIn)) ||
-                ($breakEnd1 && strtotime($breakEnd1) > strtotime($clockOut))) {
-                $validator->errors()->add('break_start_1', '休憩1は勤務時間内に設定してください。');
-            }
-
-            if (($breakStart2 && strtotime($breakStart2) < strtotime($clockIn)) ||
-                ($breakEnd2 && strtotime($breakEnd2) > strtotime($clockOut))) {
-                $validator->errors()->add('break_start_2', '休憩2は勤務時間内に設定してください。');
-            }
+            $this->validateBreakTime($validator, $breakStart1, $breakEnd1, $clockIn, $clockOut, 'break_start_1');
+            $this->validateBreakTime($validator, $breakStart2, $breakEnd2, $clockIn, $clockOut, 'break_start_2');
         });
     }
 
-    public function applications()
+    private function validateBreakTime($validator, $start, $end, $clockIn, $clockOut, $field)
     {
-        return $this->hasMany(AttendanceApplication::class, 'attendance_id');
-    }
+        if ($start && Carbon::parse($start)->lt(Carbon::parse($clockIn))) {
+            $validator->errors()->add($field, '休憩時間が勤務時間外です。');
+        }
 
+        if ($end && Carbon::parse($end)->gt(Carbon::parse($clockOut))) {
+            $validator->errors()->add($field, '休憩時間が勤務時間外です。');
+        }
+    }
 }

@@ -38,7 +38,7 @@
                 <tr>
                     <td>
                         @if($application->status === '承認待ち')
-                            <span class="badge bg-warning">未承認</span>
+                            <span class="badge bg-warning">承認待ち</span>
                         @elseif($application->status === '承認')
                             <span class="badge bg-success">承認済み</span>
                         @elseif($application->status === '却下')

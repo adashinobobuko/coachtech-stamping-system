@@ -21,40 +21,66 @@ class AdminController extends Controller
             ->get()
             ->groupBy('user_id');
 
-        $attendances = $rawAttendances->map(function ($records, $userId) use ($date) {
+        $attendances = $rawAttendances->map(function ($records, $userId) {
             $user = $records->first()->user;
 
+            // デフォルトの打刻
             $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
             $clockOut = $records->firstWhere('type', 'clock_out')?->timestamp;
 
-            $breakStart = $records->firstWhere('type', 'break_start')?->timestamp;
-            $breakEnd = $records->firstWhere('type', 'break_end')?->timestamp;
+            // デフォルトの休憩時間（申請がなければ使う）
+            $breakMinutes = 0;
+            $breaks = $records->filter(fn($r) => str_starts_with($r->type, 'break'))->sortBy('timestamp')->values();
+            for ($i = 0; $i < $breaks->count() - 1; $i += 2) {
+                $start = optional($breaks->get($i))->timestamp;
+                $end = optional($breaks->get($i + 1))->timestamp;
+                if ($start && $end) {
+                    $breakMinutes += $end->diffInMinutes($start);
+                }
+            }
 
-            // 承認済みの修正申請があれば、修正後の打刻を反映
+            // 承認済みの申請
             $applications = AttendanceApplication::where('attendance_id', $records->first()->id)
                 ->where('status', '承認')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            // 申請に clock_in / clock_out があれば優先
-            $clockInRaw = $applications->where('event_type', 'clock_in')->first()?->new_time ?? $clockIn;
-            $clockOutRaw = $applications->where('event_type', 'clock_out')->first()?->new_time ?? $clockOut;
+            // 複数申請が優先
+            $multi = $applications->firstWhere('event_type', '複数申請');
+            if ($multi) {
+                preg_match('/出勤：(\d{2}:\d{2})/', $multi->note, $inMatch);
+                preg_match('/退勤：(\d{2}:\d{2})/', $multi->note, $outMatch);
+                preg_match_all('/休憩\d+：(\d{2}:\d{2})～(\d{2}:\d{2})/', $multi->note, $breakMatches, PREG_SET_ORDER);
 
-            $clockIn = $clockInRaw ? Carbon::parse($clockInRaw) : null;
-            $clockOut = $clockOutRaw ? Carbon::parse($clockOutRaw) : null;
+                $clockIn = !empty($inMatch[1]) ? Carbon::createFromFormat('H:i', $inMatch[1]) : $clockIn;
+                $clockOut = !empty($outMatch[1]) ? Carbon::createFromFormat('H:i', $outMatch[1]) : $clockOut;
 
-            // 休憩計算
-            $breakStarts = $applications->where('event_type', 'break_start')->values();
-            $breakEnds = $applications->where('event_type', 'break_end')->values();
+                $breakMinutes = 0;
+                foreach ($breakMatches as $match) {
+                    $start = Carbon::createFromFormat('H:i', $match[1]);
+                    $end = Carbon::createFromFormat('H:i', $match[2]);
+                    $breakMinutes += $end->diffInMinutes($start);
+                }
+            } else {
+                // 個別申請で上書き（複数申請がない場合）
+                $clockInRaw = $applications->where('event_type', 'clock_in')->first()?->new_time;
+                $clockOutRaw = $applications->where('event_type', 'clock_out')->first()?->new_time;
 
-            $breakMinutes = 0;
-            for ($i = 0; $i < min($breakStarts->count(), $breakEnds->count()); $i++) {
-                $start = Carbon::parse($breakStarts[$i]->new_time);
-                $end = Carbon::parse($breakEnds[$i]->new_time);
-                $breakMinutes += $end->diffInMinutes($start);
+                $clockIn = $clockInRaw ? Carbon::parse($clockInRaw) : $clockIn;
+                $clockOut = $clockOutRaw ? Carbon::parse($clockOutRaw) : $clockOut;
+
+                $startApps = $applications->where('event_type', 'break_start')->values();
+                $endApps = $applications->where('event_type', 'break_end')->values();
+
+                $breakMinutes = 0;
+                for ($i = 0; $i < min($startApps->count(), $endApps->count()); $i++) {
+                    $start = Carbon::parse($startApps[$i]->new_time);
+                    $end = Carbon::parse($endApps[$i]->new_time);
+                    $breakMinutes += $end->diffInMinutes($start);
+                }
             }
 
-            $workMinutes = ($clockIn && $clockOut) ? $clockOut->diffInMinutes($clockIn) - $breakMinutes : 0;
+            $workMinutes = ($clockIn && $clockOut) ? max(0, $clockOut->diffInMinutes($clockIn) - $breakMinutes) : 0;
 
             return (object)[
                 'id' => $records->first()->id,
@@ -68,6 +94,7 @@ class AdminController extends Controller
 
         return view('admin.dashboard', compact('attendances', 'date'));
     }
+
 
     // 管理者用打刻詳細
     public function show(Request $request, $user_id)
@@ -132,6 +159,25 @@ class AdminController extends Controller
                 $breakPairs[] = [
                     'start' => $start,
                     'end' => $end,
+                ];
+            }
+        }
+
+        $multi = $applications->firstWhere('event_type', '複数申請');
+
+        if ($multi) {
+            preg_match('/出勤：(\d{2}:\d{2})/', $multi->note, $inMatch);
+            preg_match('/退勤：(\d{2}:\d{2})/', $multi->note, $outMatch);
+            preg_match_all('/休憩\d+：(\d{2}:\d{2})～(\d{2}:\d{2})/', $multi->note, $breakMatches, PREG_SET_ORDER);
+
+            $clockIn = !empty($inMatch[1]) ? Carbon::createFromFormat('H:i', $inMatch[1]) : $clockIn;
+            $clockOut = !empty($outMatch[1]) ? Carbon::createFromFormat('H:i', $outMatch[1]) : $clockOut;
+
+            $breakPairs = [];
+            foreach ($breakMatches as $match) {
+                $breakPairs[] = [
+                    'start' => $match[1],
+                    'end' => $match[2],
                 ];
             }
         }
@@ -389,13 +435,13 @@ class AdminController extends Controller
         return redirect()->back()->with('success', '修正申請を承認しました');
     }
 
-    public function reject($id)
-    {
-        $application = AttendanceApplication::findOrFail($id);
-        $application->status = '却下';
-        $application->save();
+    // public function reject($id)
+    // {
+    //     $application = AttendanceApplication::findOrFail($id);
+    //     $application->status = '却下';
+    //     $application->save();
 
-        return redirect()->back()->with('success', '修正申請を却下しました');
-    }
+    //     return redirect()->back()->with('success', '修正申請を却下しました');
+    // }
 
 }

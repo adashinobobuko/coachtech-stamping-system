@@ -102,9 +102,9 @@
                     $noteRaw = old('note', $application->note ?? '');
                     // 「備考：」以降だけを抽出（なければ全体表示）
                     if (preg_match('/備考：(.+)/u', $noteRaw, $matches)) {
-                        $noteDisplay = trim($matches[1]);
+                        $noteToDisplay = trim($matches[1]);
                     } else {
-                        $noteDisplay = $noteRaw;
+                        $noteToDisplay = $noteRaw;
                     }
                 @endphp
 
@@ -150,10 +150,10 @@
                     <button type="submit" class="btn btn-success">承認</button>
                 </form>
 
-                <form method="POST" action="{{ route('admin.attendance.reject', ['id' => $application->id]) }}" style="margin-top: 10px;">
+                {{ --<form method="POST" action="{{ route('admin.attendance.reject', ['id' => $application->id]) }}" style="margin-top: 10px;">
                     @csrf
                     <button type="submit" class="btn btn-danger">却下</button>
-                </form>
+                </form> --}}
             @endif
 
             {{-- エラーメッセージ --}}
