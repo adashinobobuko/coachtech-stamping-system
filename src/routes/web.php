@@ -52,8 +52,8 @@ Route::post('/admin/login', [AuthController::class, 'adminlogin'])->name('admin.
 // 管理者用ルート
 Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('/attendance/list', [AdminController::class, 'index'])->name('admin.index');
-    Route::get('/attendance/{id}', [AdminController::class, 'show'])->name('admin.attendance.show');
-    Route::post('/attendance/update/{id}', [AttendanceController::class, 'update'])->name('admin.attendance.update');
+    Route::get('/attendance/{id}', [AdminController::class, 'edit'])->name('admin.attendance.editshow');
+    Route::post('/attendance/update/{id}', [AdminController::class, 'update'])->name('admin.attendance.update'); // 保存用
     Route::post('/logout', [AuthController::class, 'adminlogout'])->name('admin.logout');
     Route::get('/staff/list', [AdminController::class, 'staffListShow'])->name('admin.staff.list');
     Route::get('/attendance/staff/{id}', [AdminController::class, 'StaffAttendanceShow'])->name('admin.staff.attendance');

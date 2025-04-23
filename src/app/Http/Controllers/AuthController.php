@@ -117,14 +117,18 @@ class AuthController extends Controller
         $user->save();
 
         // 認証メール再送
-        Mail::send('emails.verify', ['user' => $user], function ($message) use ($user) {
+        $verificationUrl = url('/verify-email?token=' . $user->email_verification_token);
+
+        Mail::send('email.verify', [
+            'user' => $user,
+            'verificationUrl' => $verificationUrl,
+        ], function ($message) use ($user) {
             $message->to($user->email);
             $message->subject('メール認証のお願い（再送）');
         });
 
         return back()->with('message', '確認メールを再送しました！');
     }
-
 
     //スタッフログイン処理
     public function staffLogin(LoginRequest $request)

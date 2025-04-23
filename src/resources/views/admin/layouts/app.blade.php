@@ -24,7 +24,7 @@
                 <a href="{{ route('admin.application.list') }}">申請一覧</a>
                 <div class="logged-out">
                     <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form-staff').submit();">ログアウト</a>
-                    <form id="logout-form-staff" action="{{ route('staff.logout') }}" method="POST" style="display: none;">
+                    <form id="logout-form-staff" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
                         @csrf
                     </form>
                 </div>

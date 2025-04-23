@@ -36,7 +36,7 @@
                 <td>{{ gmdate('H:i', $attendance->work_minutes * 60) }}</td>
                 <td class="border px-2 py-1">
                 <td class="border px-2 py-1">
-                    <a href="{{ route('admin.attendance.show', ['id' => $attendance->user->id, 'date' => $date->format('Y-m-d')]) }}" class="text-blue-500">詳細</a>
+                    <a href="{{ route('admin.attendance.editshow', ['id' => $attendance->user->id, 'date' => $date->format('Y-m-d')]) }}" class="text-blue-500">詳細</a>
                 </td>
                 </td>
             </tr>

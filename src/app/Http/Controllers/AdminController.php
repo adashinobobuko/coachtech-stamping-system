@@ -25,12 +25,11 @@ class AdminController extends Controller
             $user = $records->first()->user;
 
             // デフォルトの打刻
-            $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
+           $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
             $clockOut = $records->firstWhere('type', 'clock_out')?->timestamp;
 
-            // デフォルトの休憩時間（申請がなければ使う）
-            $breakMinutes = 0;
             $breaks = $records->filter(fn($r) => str_starts_with($r->type, 'break'))->sortBy('timestamp')->values();
+            $breakMinutes = 0;
             for ($i = 0; $i < $breaks->count() - 1; $i += 2) {
                 $start = optional($breaks->get($i))->timestamp;
                 $end = optional($breaks->get($i + 1))->timestamp;
@@ -39,44 +38,47 @@ class AdminController extends Controller
                 }
             }
 
-            // 承認済みの申請
+            // 承認済みの申請があるなら、申請データで上書き
             $applications = AttendanceApplication::where('attendance_id', $records->first()->id)
                 ->where('status', '承認')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            // 複数申請が優先
-            $multi = $applications->firstWhere('event_type', '複数申請');
-            if ($multi) {
-                preg_match('/出勤：(\d{2}:\d{2})/', $multi->note, $inMatch);
-                preg_match('/退勤：(\d{2}:\d{2})/', $multi->note, $outMatch);
-                preg_match_all('/休憩\d+：(\d{2}:\d{2})～(\d{2}:\d{2})/', $multi->note, $breakMatches, PREG_SET_ORDER);
+            if ($applications->isNotEmpty()) {
+                $multi = $applications->firstWhere('event_type', '複数申請');
+                if ($multi) {
+                    preg_match('/出勤：(\d{2}:\d{2})/', $multi->note, $inMatch);
+                    preg_match('/退勤：(\d{2}:\d{2})/', $multi->note, $outMatch);
+                    preg_match_all('/休憩\d+：(\d{2}:\d{2})～(\d{2}:\d{2})/', $multi->note, $breakMatches, PREG_SET_ORDER);
 
-                $clockIn = !empty($inMatch[1]) ? Carbon::createFromFormat('H:i', $inMatch[1]) : $clockIn;
-                $clockOut = !empty($outMatch[1]) ? Carbon::createFromFormat('H:i', $outMatch[1]) : $clockOut;
+                    $clockIn = !empty($inMatch[1]) ? Carbon::createFromFormat('H:i', $inMatch[1]) : $clockIn;
+                    $clockOut = !empty($outMatch[1]) ? Carbon::createFromFormat('H:i', $outMatch[1]) : $clockOut;
 
-                $breakMinutes = 0;
-                foreach ($breakMatches as $match) {
-                    $start = Carbon::createFromFormat('H:i', $match[1]);
-                    $end = Carbon::createFromFormat('H:i', $match[2]);
-                    $breakMinutes += $end->diffInMinutes($start);
-                }
-            } else {
-                // 個別申請で上書き（複数申請がない場合）
-                $clockInRaw = $applications->where('event_type', 'clock_in')->first()?->new_time;
-                $clockOutRaw = $applications->where('event_type', 'clock_out')->first()?->new_time;
+                    $breakMinutes = 0;
+                    foreach ($breakMatches as $match) {
+                        $start = Carbon::createFromFormat('H:i', $match[1]);
+                        $end = Carbon::createFromFormat('H:i', $match[2]);
+                        $breakMinutes += $end->diffInMinutes($start);
+                    }
+                } else {
+                    // 個別申請
+                    $clockInRaw = $applications->where('event_type', 'clock_in')->first()?->new_time;
+                    $clockOutRaw = $applications->where('event_type', 'clock_out')->first()?->new_time;
 
-                $clockIn = $clockInRaw ? Carbon::parse($clockInRaw) : $clockIn;
-                $clockOut = $clockOutRaw ? Carbon::parse($clockOutRaw) : $clockOut;
+                    $clockIn = $clockInRaw ? Carbon::parse($clockInRaw) : $clockIn;
+                    $clockOut = $clockOutRaw ? Carbon::parse($clockOutRaw) : $clockOut;
 
-                $startApps = $applications->where('event_type', 'break_start')->values();
-                $endApps = $applications->where('event_type', 'break_end')->values();
+                    $startApps = $applications->where('event_type', 'break_start')->values();
+                    $endApps = $applications->where('event_type', 'break_end')->values();
 
-                $breakMinutes = 0;
-                for ($i = 0; $i < min($startApps->count(), $endApps->count()); $i++) {
-                    $start = Carbon::parse($startApps[$i]->new_time);
-                    $end = Carbon::parse($endApps[$i]->new_time);
-                    $breakMinutes += $end->diffInMinutes($start);
+                    if ($startApps->count() && $endApps->count()) {
+                        $breakMinutes = 0;
+                        for ($i = 0; $i < min($startApps->count(), $endApps->count()); $i++) {
+                            $start = Carbon::parse($startApps[$i]->new_time);
+                            $end = Carbon::parse($endApps[$i]->new_time);
+                            $breakMinutes += $end->diffInMinutes($start);
+                        }
+                    }
                 }
             }
 
@@ -90,6 +92,7 @@ class AdminController extends Controller
                 'break_minutes' => $breakMinutes,
                 'work_minutes' => $workMinutes,
             ];
+
         });
 
         return view('admin.dashboard', compact('attendances', 'date'));
@@ -97,7 +100,7 @@ class AdminController extends Controller
 
 
     // 管理者用打刻詳細
-    public function show(Request $request, $user_id)
+    public function edit(Request $request, $user_id)
     {
         $date = Carbon::parse($request->input('date'));
 
@@ -189,34 +192,77 @@ class AdminController extends Controller
     }
 
     // 管理者用打刻詳細（管理者が直接修正）
-    public function edit($id)
+    // public function edit($id)
+    // {
+    //     $record = Attendance::with('user')->findOrFail($id);
+    //     $user = $record->user;
+    //     $date = $record->timestamp->copy(); // 画面表示用の日付
+
+    //     // 対象ユーザーの該当日全打刻
+    //     $records = Attendance::where('user_id', $record->user_id)
+    //         ->whereDate('timestamp', $record->timestamp)
+    //         ->get();
+
+    //     $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
+    //     $clockOut = $records->firstWhere('type', 'clock_out')?->timestamp;
+
+    //     $breaks = $records->filter(fn($r) => str_starts_with($r->type, 'break'))->sortBy('timestamp')->values();
+    //     $breakPairs = [];
+    //     for ($i = 0; $i < $breaks->count() - 1; $i += 2) {
+    //         $breakPairs[] = [
+    //             'start' => optional($breaks->get($i))->timestamp?->format('H:i'),
+    //             'end' => optional($breaks->get($i + 1))->timestamp?->format('H:i'),
+    //         ];
+    //     }
+
+    //     $note = AttendanceApplication::where('attendance_id', $record->id)
+    //     ->where('status', '承認')
+    //     ->orderBy('created_at', 'desc')
+    //     ->first()?->note ?? '';
+
+    //     $isPending = false;
+
+    //     return view('admin.attendance.show', compact(
+    //         'record', 'user', 'date', 'clockIn', 'clockOut', 'breakPairs', 'note' , 'isPending'
+    //     ));
+    // }
+
+    public function update(Request $request, $id)
     {
-        $record = Attendance::with('user')->findOrFail($id);
+        $record = Attendance::findOrFail($id);
+        $userId = $record->user_id;
+        $date = $record->timestamp->toDateString();
 
-        $date = $record->timestamp->copy(); // 画面表示用の日付
-
-        // 対象ユーザーの該当日全打刻
-        $records = Attendance::where('user_id', $record->user_id)
-            ->whereDate('timestamp', $record->timestamp)
+        $records = Attendance::where('user_id', $userId)
+            ->whereDate('timestamp', $date)
             ->get();
 
-        $clockIn = $records->firstWhere('type', 'clock_in')?->timestamp;
-        $clockOut = $records->firstWhere('type', 'clock_out')?->timestamp;
-
-        $breaks = $records->filter(fn($r) => str_starts_with($r->type, 'break'))->sortBy('timestamp')->values();
-        $breakPairs = [];
-        for ($i = 0; $i < $breaks->count() - 1; $i += 2) {
-            $breakPairs[] = [
-                'start' => optional($breaks->get($i))->timestamp?->format('H:i'),
-                'end' => optional($breaks->get($i + 1))->timestamp?->format('H:i'),
-            ];
+        // 出退勤更新
+        if ($request->filled('csssssssssssssssssssssssssssssfsfsfsfsfsfsfsfsfslock_in')) {
+            $records->firstWhere('type', 'clock_in')?->update([
+                'timestamp' => Carbon::parse($date . ' ' . $request->input('clock_in'))
+            ]);
+        }
+        if ($request->filled('clock_out')) {
+            $records->firstWhere('type', 'clock_out')?->update([
+                'timestamp' => Carbon::parse($date . ' ' . $request->input('clock_out'))
+            ]);
         }
 
-        $isPending = false;
+        // 休憩更新
+        foreach ($records->filter(fn($r) => str_starts_with($r->type, 'break'))->values() as $index => $rec) {
+            $pairIndex = (int) floor($index / 2) + 1;
+            $field = $rec->type === 'break_start' ? "break_start_{$pairIndex}" : "break_end_{$pairIndex}";
+            $time = $request->input($field);
 
-        return view('staff.attendance.detail', compact(
-            'record', 'clockIn', 'clockOut', 'breakPairs', 'isPending'
-        ));
+            if ($time) {
+                $rec->update([
+                    'timestamp' => Carbon::parse($date . ' ' . $time)
+                ]);
+            }
+        }
+
+        return redirect()->route('admin.index')->with('success', '勤怠情報を更新しました。');
     }
 
     public function staffListShow(Request $request)
