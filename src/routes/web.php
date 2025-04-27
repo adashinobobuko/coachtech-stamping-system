@@ -60,5 +60,4 @@ Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('/stamp_correction_request/list',[AdminController::class,'adminApplicationListShow'])->name('admin.application.list');
     Route::get('/stamp_correction_request/approve/{id}',[AdminController::class,'applicationDetail'])->name('admin.application.detail');
     Route::post('/admin/stamp_correction_request/approve/{id}', [AdminController::class, 'approve'])->name('admin.attendance.approve');
-    //Route::post('/admin/stamp_correction_request/reject/{id}', [AdminController::class, 'reject'])->name('admin.attendance.reject');
 });

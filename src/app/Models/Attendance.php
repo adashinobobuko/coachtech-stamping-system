@@ -15,6 +15,7 @@ class Attendance extends Model
         'timestamp',      // 打刻日時
         'break_start2',
         'break_end2',
+        'note'
     ];
 
     protected $casts = [

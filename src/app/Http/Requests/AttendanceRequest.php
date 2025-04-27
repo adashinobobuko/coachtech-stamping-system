@@ -21,15 +21,8 @@ class AttendanceRequest extends FormRequest
             'break_end_1' => ['nullable', 'date_format:H:i'],
             'break_start_2' => ['nullable', 'date_format:H:i'],
             'break_end_2' => ['nullable', 'date_format:H:i'],
-            'note' => ['required_if:is_correction,true', 'string'],
+            'note' => ['required', 'string'],
             'is_correction' => ['required', 'boolean'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'note.required_if' => '備考を記入してください。',
         ];
     }
 
@@ -62,5 +55,12 @@ class AttendanceRequest extends FormRequest
         if ($end && Carbon::parse($end)->gt(Carbon::parse($clockOut))) {
             $validator->errors()->add($field, '休憩時間が勤務時間外です。');
         }
+    }
+
+    public function messages(): array
+    {
+        return [
+            'note.required' => '備考を記入してください。',
+        ];
     }
 }

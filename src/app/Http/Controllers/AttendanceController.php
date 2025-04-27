@@ -429,7 +429,7 @@ class AttendanceController extends Controller
             'clockOut' => $clockOut,
             'breakPairs' => $breakPairs,
             'isPending' => $application->status === '承認待ち',
-            'isApproved' => $application->status === '承認済み',
+            'isApproved' => $application->status === '承認',
             'noteToDisplay' => $noteToDisplay,
         ]);
     }
@@ -488,6 +488,16 @@ class AttendanceController extends Controller
             ->where('status', $status)
             ->orderBy('created_at', 'desc')
             ->get()
+            ->map(function ($application) {
+                // 備考だけを抽出
+                $application->noteText = '';
+                if (preg_match('/備考：([^\r\n\/]+)/u', $application->note, $matches)) {
+                    $application->noteText = trim($matches[1]);
+                } else {
+                    $application->noteText = $application->note;
+                }
+                return $application;
+            })
             ->groupBy(function ($application) {
                 return Carbon::parse($application->old_time)->format('Y-m-d');
             });

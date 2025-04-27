@@ -50,9 +50,9 @@
             <tr class="border-b">
                 <th class="p-2">備考</th>
                 <td class="p-2">
-                    <textarea name="note" class="w-full border rounded" rows="3">{{ $note }}</textarea>
+                    <textarea name="note" class="w-full border rounded" rows="3">{{ old('note', $note) }}</textarea>
                 </td>
-            </tr>
+            </tr>     
         </table>
 
         <div class="mt-6 text-right">

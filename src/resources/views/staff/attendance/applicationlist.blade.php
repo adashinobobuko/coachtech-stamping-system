@@ -35,21 +35,18 @@
                 </tr>
             </thead>
             <tbody>
-            @foreach ($applications as $date => $dailyApplications)
-                <tr>
-                    <td colspan="6"><strong>{{ $date }} の申請</strong></td>
-                </tr>
-                @foreach ($dailyApplications as $application)
-                    <tr>
-                        <td>{{ $application->status }}</td>
-                        <td>{{ $application->user->name }}</td>
-                        <td>{{ $application->old_time }}</td>
-                        <td>{{ $application->note }}</td>
-                        <td>{{ $application->created_at->format('Y-m-d H:i') }}</td>
-                        <td><a href="{{ route('staff.application.show', ['id' => $application->id]) }}">詳細</a></td>
-                    </tr>
+                @foreach ($applications as $date => $dailyApplications)
+                    @foreach ($dailyApplications as $application)
+                        <tr>
+                            <td>{{ $application->status }}</td>
+                            <td>{{ $application->user->name }}</td>
+                            <td>{{ \Carbon\Carbon::parse($application->old_time)->format('Y/m/d') }}</td>
+                            <td>{{ $application->noteText }}</td>
+                            <td>{{ $application->created_at->format('Y/m/d') }}</td>
+                            <td><a href="{{ route('staff.application.show', ['id' => $application->id]) }}">詳細</a></td>
+                        </tr>
+                    @endforeach
                 @endforeach
-            @endforeach
             </tbody>
         </table>
     </div>

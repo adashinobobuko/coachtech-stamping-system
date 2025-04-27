@@ -1,4 +1,4 @@
-@extends('staff.layouts.app') {{-- ← 固定する --}}
+@extends('staff.layouts.app')
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/index.css') }}?v={{ time() }}" />
@@ -144,16 +144,17 @@
             </form>
 
             {{-- スタッフには不可視、管理者用 --}}
-            @if ($isAdmin && $application?->status === '承認待ち')
-                <form method="POST" action="{{ route('admin.attendance.approve', ['id' => $application->id]) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-success">承認</button>
-                </form>
-
-            {{-- <form method="POST" action="{{ route('admin.attendance.reject', ['id' => $application->id]) }}" style="margin-top: 10px;">
-                @csrf
-                <button type="submit" class="btn btn-danger">却下</button>
-            </form> --}}
+            @if ($isAdmin)
+                @if ($application?->status === '承認待ち')
+                    <form method="POST" action="{{ route('admin.attendance.approve', ['id' => $application->id]) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-success">承認</button>
+                    </form>
+                @elseif ($application?->status === '承認')
+                    <div class="status-button">
+                        <button class="btn btn-secondary" disabled>承認済み</button>
+                    </div>
+                @endif
             @endif
 
             {{-- エラーメッセージ --}}
@@ -163,12 +164,6 @@
                     </div>
                 @endif
 
-
-            {{-- 戻るリンク --}}
-            <div style="margin-top: 20px;">
-                <a href="{{ route('attendance.list') }}">勤怠一覧に戻る</a> |
-                <a href="{{ route('attendance.applications') }}">申請一覧に戻る</a>
-            </div>
         </div>
     </body>
 @endsection

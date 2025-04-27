@@ -41,15 +41,13 @@
                             <span class="badge bg-warning">承認待ち</span>
                         @elseif($application->status === '承認')
                             <span class="badge bg-success">承認済み</span>
-                        @elseif($application->status === '却下')
-                            <span class="badge bg-danger">却下</span>
                         @else
                             <span class="badge bg-secondary">不明</span>
                         @endif
                     </td>
                     <td>{{ $application->user->name }}</td>
                     <td>{{ optional($application->attendance)->timestamp ? \Carbon\Carbon::parse($application->attendance->timestamp)->format('Y/m/d') : '未登録' }}</td>
-                    <td>{{ $application->note }}</td>
+                    <td>{{ $application->noteText }}</td>
                     <td>{{ $application->created_at->format('Y/m/d') }}</td>
                     <td>
                         <a href="{{ route('admin.application.detail', $application->id) }}">詳細</a>

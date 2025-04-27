@@ -10,6 +10,18 @@
         <div class="attendance-container">
             <h1>{{ $user->name }}さんの勤怠</h1>
 
+        @php
+            $date = \Carbon\Carbon::parse($currentMonth . '-01');
+            $prevMonth = $date->copy()->subMonth()->format('Y-m');
+            $nextMonth = $date->copy()->addMonth()->format('Y-m');
+        @endphp
+
+        <div class="month-navigation">
+            <a href="{{ route('admin.attendance.editshow', ['id' => $user->id, 'date' => $prevMonth]) }}">← 前月</a>
+            <span>{{ $date->format('Y年n月') }}</span>
+            <a href="{{ route('admin.attendance.editshow', ['id' => $user->id, 'date' => $nextMonth]) }}">翌月 →</a>
+        </div>
+
     <table class="attendance-table">
         <thead>
             <tr>
@@ -30,7 +42,7 @@
                     <td>{{ $attendance->break_minutes > 0 ? gmdate('H:i', $attendance->break_minutes * 60) : '' }}</td>
                     <td>{{ $attendance->work_minutes > 0 ? gmdate('H:i', $attendance->work_minutes * 60) : '' }}</td>
                     <td>
-                        <a href="{{ route('admin.attendance.show', ['id' => $user->id, 'date' => $attendance->date]) }}">
+                        <a href="{{ route('admin.attendance.editshow', ['id' => $user->id, 'date' => $attendance->date]) }}">
                             詳細
                         </a>
                     </td>
