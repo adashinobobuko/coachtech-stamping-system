@@ -459,11 +459,16 @@ class AttendanceController extends Controller
         if ($request->clock_out) {
             $summary[] = '退勤：' . $request->clock_out;
         }
-        if ($request->input('break_start_1') && $request->input('break_end_1')) {
-            $summary[] = '休憩1：' . $request->input('break_start_1') . '～' . $request->input('break_end_1');
-        }
-        if ($request->input('break_start_2') && $request->input('break_end_2')) {
-            $summary[] = '休憩2：' . $request->input('break_start_2') . '～' . $request->input('break_end_2');
+
+        // 休憩も無限対応
+        $breakStarts = $request->only(array_filter(array_keys($request->all()), fn($key) => str_starts_with($key, 'break_start_')));
+        foreach ($breakStarts as $key => $start) {
+            $index = str_replace('break_start_', '', $key);
+            $end = $request->input('break_end_' . $index);
+
+            if ($start && $end) {
+                $summary[] = '休憩' . $index . '：' . $start . '～' . $end;
+            }
         }
 
         AttendanceApplication::create([

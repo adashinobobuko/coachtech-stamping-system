@@ -12,6 +12,17 @@
     <form method="POST" action="{{ route('admin.attendance.update', ['id' => $record->id]) }}">
         @csrf
 
+        {{-- エラーメッセージを上にまとめて全部表示 --}}
+        @if ($errors->any())
+            <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                <ul class="list-disc pl-5">
+                    @foreach ($errors->all() as $message)
+                        <li>{{ $message }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <table class="table-auto w-full text-left border border-collapse border-gray-300">
             <tr class="border-b">
                 <th class="p-2 w-1/3">名前</th>

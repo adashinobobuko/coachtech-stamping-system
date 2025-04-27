@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\AttendanceModification;
 use App\Models\AttendanceApplication;
 use Illuminate\Support\Collection;
-use App\Http\Requests\AttendanceRequest;
+use App\Http\Requests\AttendanceModificationRequest;
 
 class AdminController extends Controller
 {
@@ -151,7 +151,7 @@ class AdminController extends Controller
     }
 
     // 管理者用 打刻更新処理
-    public function update(Request $request, $id)
+    public function update(AttendanceModificationRequest $request, $id)
     {
         $record = Attendance::findOrFail($id);
         $userId = $record->user_id;
