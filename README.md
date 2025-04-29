@@ -4,10 +4,11 @@
 [github.com:coachtech-material/laravel-docker-template.git ](https://github.com/coachtech-material/laravel-docker-template)  
 laravelのディレクトリ構成はこちらからクローンして参考にさせていただいてます。  
 コマンドラインで以下のコマンドを実行してください。（WindowsはUbuntuのインストールが必要です。可能な方はPCを仮想化してから実行してください）  
-ターミナルで以下のコマンドを入力してください。  
 ## メール認証について  
 mailhogというツールを使用・導入しています。  
 以下のコマンドの説明の途中で導入方法を記載いたします。  
+  
+ターミナルで以下のコマンドを入力してください。  
   
 ```bash
 cd coachtech/laravel（対応している仮想環境のディレクトリ）  
@@ -69,8 +70,8 @@ APP_KEY=base64:xxxxxxxxxxxx==
 （XXXには文字の羅列が入る）  
   
 という行が作られるのでこれでこのプロセスは完了です。テスト環境を閲覧できます。  
-_ 注意:  
-_ key:generate は本番環境でも必須ですが、開発環境と本番環境でキーは別にしてください。  
+> **注意:**  
+> key:generate は本番環境でも必須ですが、開発環境と本番環境でキーは別にしてください。  
 
 ## メール認証について  
 上記で触れたメール認証の際のメール送信テストについてです。  
@@ -94,6 +95,7 @@ services:
 ここで  
 ・8025ポートはブラウザ画面（http://localhost:8025）用  
 ・1025ポートはアプリからのメール送信用　になります。  
+  
 ### 2. .envファイルの設定  
 .envに、Mailhog用のメール設定を追記・変更してください。  
 （こちらについても上記同様.env.exampleファイルに記載済みです。）  
@@ -107,14 +109,16 @@ MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS=example@example.com  
 MAIL_FROM_NAME="Example"  
 ```   
-_ 注意:  
-_ MAIL_HOST=mailhog と記載するのがポイントです。  
-_ docker-composeで設定したサービス名と一致させる必要があります。  
+> **注意:**  
+> `MAIL_HOST=mailhog` と記載するのがポイントです。  
+> docker-composeで設定したサービス名と一致させる必要があります。  
+  
 ### 3. docker-composeの再起動  
 ```bash  
 docker-compose down  
 docker-compose up -d  
 ```   
+  
 ### 4.Mailhog画面の確認方法  
 コンテナ起動後、以下のURLにアクセスしてください。  
 http://localhost:8025  
