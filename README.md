@@ -64,11 +64,13 @@ DB_PASSWORD=laravel_pass
 docker-compose exec php artisan key:generate
 ```   
 これを実行すると.envファイル内に  
+  
 APP_KEY=base64:xxxxxxxxxxxx==  
 （XXXには文字の羅列が入る）  
+  
 という行が作られるのでこれでこのプロセスは完了です。テスト環境を閲覧できます。  
-| 注意:  
-|key:generate は本番環境でも必須ですが、開発環境と本番環境でキーは別にしてください。  
+_ 注意:  
+_ key:generate は本番環境でも必須ですが、開発環境と本番環境でキーは別にしてください。  
 
 ## メール認証について  
 上記で触れたメール認証の際のメール送信テストについてです。  
@@ -105,9 +107,9 @@ MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS=example@example.com  
 MAIL_FROM_NAME="Example"  
 ```   
-| 注意:  
-| MAIL_HOST=mailhog と記載するのがポイントです。  
-| docker-composeで設定したサービス名と一致させる必要があります。  
+_ 注意:  
+_ MAIL_HOST=mailhog と記載するのがポイントです。  
+_ docker-composeで設定したサービス名と一致させる必要があります。  
 ### 3. docker-composeの再起動  
 ```bash  
 docker-compose down  
