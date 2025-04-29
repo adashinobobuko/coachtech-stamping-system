@@ -6,13 +6,17 @@
 @endsection
 
 @section('content')
-<div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
-    <h2 class="text-xl font-bold mb-6">勤怠詳細</h2>
 
+{{-- タイトルを外に出す --}}
+<div class="page-title">
+    <h2 class="title-text">勤怠詳細</h2>
+</div>
+
+<div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
+    {{-- ↓ 白いコンテナの中は勤怠データだけ --}}
     <form method="POST" action="{{ route('admin.attendance.update', ['id' => $record->id]) }}">
         @csrf
 
-        {{-- エラーメッセージを上にまとめて全部表示 --}}
         @if ($errors->any())
             <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
                 <ul class="list-disc pl-5">
@@ -30,7 +34,7 @@
             </tr>
             <tr class="border-b">
                 <th class="p-2">日付</th>
-                <td class="p-2">{{ $date->year }}年　{{ $date->month }}月　{{ $date->day }}日</td>
+                <td class="p-2">{{ $date->year }}年{{ $date->month }}月{{ $date->day }}日</td>
             </tr>
             <tr class="border-b">
                 <th class="p-2">出勤・退勤</th>
@@ -65,12 +69,13 @@
                 </td>
             </tr>     
         </table>
+    </div> {{-- ★ここで白カード終了 --}}
 
-        <div class="mt-6 text-right">
-            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-500">
-                修正
-            </button>
-        </div>
+    {{-- 修正ボタンを外に出す --}}
+    <div class="btn-container">
+        <button type="submit" class="btn btn-submit">修正</button>
+    </div>
+
     </form>
 </div>
 @endsection

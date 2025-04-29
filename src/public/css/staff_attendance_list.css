@@ -27,6 +27,7 @@ body {
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 50px;
 }
 
 .attendance-table thead {
@@ -94,4 +95,19 @@ body {
 
 .csv-button:hover {
     background-color: #444;
+}
+
+.btn {
+    text-decoration: none;
+}
+
+a{
+    text-decoration: none;
+}
+
+.month-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 50px auto;
 }

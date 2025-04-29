@@ -17,7 +17,6 @@ Route::get('/', function () {
     }
 });
 
-
 // スタッフログイン・登録
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'showStaffLogin'])->name('staff.login');
@@ -60,4 +59,5 @@ Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
     Route::get('/stamp_correction_request/list',[AdminController::class,'adminApplicationListShow'])->name('admin.application.list');
     Route::get('/stamp_correction_request/approve/{id}',[AdminController::class,'applicationDetail'])->name('admin.application.detail');
     Route::post('/admin/stamp_correction_request/approve/{id}', [AdminController::class, 'approve'])->name('admin.attendance.approve');
+    Route::get('/admin/attendance/{id}/csv', [AdminController::class, 'exportStaffAttendance'])->name('admin.attendance.csv');
 });

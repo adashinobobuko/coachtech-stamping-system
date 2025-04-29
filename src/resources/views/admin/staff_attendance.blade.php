@@ -17,11 +17,14 @@
         @endphp
 
         <div class="month-navigation">
-            <a href="{{ route('admin.attendance.editshow', ['id' => $user->id, 'date' => $prevMonth]) }}">← 前月</a>
+            <a href="{{ route('admin.staff.attendance', ['id' => $user->id, 'date' => $prevMonth]) }}" class="currentMonth">← 前月</a>
             <span>{{ $date->format('Y年n月') }}</span>
-            <a href="{{ route('admin.attendance.editshow', ['id' => $user->id, 'date' => $nextMonth]) }}">翌月 →</a>
+            <a href="{{ route('admin.staff.attendance', ['id' => $user->id, 'date' => $nextMonth]) }}" class="currentMonth">翌月 →</a>
         </div>
 
+    @if ($attendances->isEmpty())
+    <p>この月の打刻データはありません。</p>
+    @else
     <table class="attendance-table">
         <thead>
             <tr>
@@ -42,14 +45,17 @@
                     <td>{{ $attendance->break_minutes > 0 ? gmdate('H:i', $attendance->break_minutes * 60) : '' }}</td>
                     <td>{{ $attendance->work_minutes > 0 ? gmdate('H:i', $attendance->work_minutes * 60) : '' }}</td>
                     <td>
-                        <a href="{{ route('admin.attendance.editshow', ['id' => $user->id, 'date' => $attendance->date]) }}">
-                            詳細
-                        </a>
+
+                    <a href="{{ route('admin.attendance.editshow', ['id' => $attendance->record_id]) }}">詳細</a>
+
                     </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
+    @endif
+    
+    <a href="{{ route('admin.attendance.csv', ['id' => $user->id, 'date' => $currentMonth]) }}" class="btn btn-primary">CSV出力</a>
 
         </div>
     </body>

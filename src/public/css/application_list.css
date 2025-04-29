@@ -1,0 +1,104 @@
+/* 背景とフォント */
+body {
+    background-color: #f1f0f4;
+    font-family: 'Noto Sans JP', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* タイトル周り */
+.page-header {
+    max-width: 1000px;
+    /* コンテナと揃える */
+    margin: 0 auto;
+    margin-top: 50px;
+    padding: 0 20px;
+    /* ちょっと余白 */
+}
+
+.title-text {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.title-text::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 24px;
+    background-color: black;
+    margin-right: 10px;
+}
+
+/* タブメニュー */
+.tab-menu {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #999;
+    padding-bottom: 10px;
+    background: transparent;
+    /* ←親divも透明 */
+}
+
+.tab-menu a {
+    font-size: 14px;
+    color: #737373;
+    text-decoration: none;
+    padding: 5px 0;
+    background: none;
+    /* ←ここ大事 */
+    border: none;
+    /* ←枠線なし */
+    outline: none;
+    /* ←クリックしたときの枠も消す */
+    appearance: none;
+    /* ←ブラウザ依存のボタン風解除 */
+    -webkit-appearance: none;
+    /* ←Safari対策 */
+    display: inline-block;
+}
+
+.tab-menu a.active {
+    font-weight: bold;
+    /* ←太字だけにする！下線いらない */
+    color: black;
+    background: none;
+    /* ←ここも必ずnoneに */
+    border: none;
+    /* ←ボーダーなし */
+}
+
+/* テーブル */
+.attendance-table {
+    width: 1000px;
+    /* コンテナと揃えた */
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    color: #737373;
+    margin-top: 20px;
+}
+
+.attendance-table thead {
+    background-color: #f9f9f9;
+}
+
+.attendance-table th,
+.attendance-table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.attendance-table a {
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+}

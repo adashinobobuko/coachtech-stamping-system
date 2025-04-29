@@ -9,38 +9,39 @@
 
 @php
     $record = $record ?? $application->attendance ?? null;
-@endphp
-
-@php
     $isAdmin = auth('admin')->check();
 @endphp
 
-    <body>
-        <div style="margin-top: 50px;">
+<body>
+    <div class="wrapper">
+        <div class="page-title">
             <h2 class="title-text">勤怠詳細・修正申請</h2>
+        </div>
 
-            @if ($errors->any())
-            <div class="alert alert-danger" style="margin-top: 20px;">
-                <ul style="margin: 0; padding-left: 20px;">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-            @endif
-
-
-            {{-- 成功メッセージの表示 --}}
-            @if(session('success'))
-                <div class="alert alert-success" style="margin-top: 20px;">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            {{-- 修正フォーム --}}
-            <form method="POST" action="{{ route('attendance.update', ['id' => $record->id ?? $application->attendance->id]) }}">
+        {{-- 修正フォーム全体 --}}
+        <form method="POST" action="{{ route('attendance.update', ['id' => $record->id ?? $application->attendance->id]) }}">
+            @csrf
             <input type="hidden" name="is_correction" value="1">
-                @csrf
+
+            {{-- containerの中にフォーム内容だけ --}}
+            <div class="container" style="margin-top: 50px;">
+                {{-- エラーメッセージ --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger" style="margin-top: 20px;">
+                        <ul style="margin: 0; padding-left: 20px;">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                {{-- 成功メッセージ --}}
+                @if(session('success'))
+                    <div class="alert alert-success" style="margin-top: 20px;">
+                        {{ session('success') }}
+                    </div>
+                @endif
 
                 {{-- 名前 --}}
                 <div class="form-group">
@@ -54,45 +55,36 @@
                     <span>{{ ($record->timestamp ?? $application->attendance->timestamp)->format('Y年n月j日') }}</span>
                 </div>
 
-                {{-- 出勤時間・退勤時間 --}}
+                {{-- 出勤・退勤時間 --}}
                 <div class="form-group">
                     <label>出勤・退勤</label>
                     @if ($isPending || $isApproved)
                         <span>{{ $clockIn ? $clockIn->format('H:i') : '―' }}</span>
-                        <span>～</span>
+                        <div class="tilde">～</div>
                         <span>{{ $clockOut ? $clockOut->format('H:i') : '―' }}</span>
                     @else
-                        <input type="time" name="clock_in"
-                            value="{{ old('clock_in', $clockIn ? $clockIn->format('H:i') : '') }}"
-                            class="form-control">
-                        <span>～</span>
-                        <input type="time" name="clock_out"
-                            value="{{ old('clock_out', $clockOut ? $clockOut->format('H:i') : '') }}"
-                            class="form-control">
+                        <input type="time" name="clock_in" value="{{ old('clock_in', $clockIn ? $clockIn->format('H:i') : '') }}" class="form-control">
+                        <div class="tilde">～</div>
+                        <input type="time" name="clock_out" value="{{ old('clock_out', $clockOut ? $clockOut->format('H:i') : '') }}" class="form-control">
                     @endif
                 </div>
 
+                {{-- 休憩時間 --}}
                 @foreach ($breakPairs as $index => $break)
                     @php
                         $breakStartName = 'break_start_' . ($index + 1);
                         $breakEndName = 'break_end_' . ($index + 1);
                     @endphp
-
                     <div class="form-group">
                         <label>休憩{{ $index + 1 }}</label>
                         @if ($isPending || $isApproved)
-                            {{-- 休憩時間が未設定の場合は「―」を表示 --}}
                             <span>{{ $break['start'] ?? '―' }}</span>
-                            <span>～</span>
+                            <div class="tilde">～</div>
                             <span>{{ $break['end'] ?? '―' }}</span>
                         @else
-                            <input type="time" name="{{ $breakStartName }}"
-                                value="{{ old($breakStartName, $break['start'] ?? '') }}"
-                                class="form-control" style="width: 100px;">
-                            <span>～</span>
-                            <input type="time" name="{{ $breakEndName }}"
-                                value="{{ old($breakEndName, $break['end'] ?? '') }}"
-                                class="form-control" style="width: 100px;">
+                            <input type="time" name="{{ $breakStartName }}" value="{{ old($breakStartName, $break['start'] ?? '') }}" class="form-control" style="width: 100px;">
+                            <div class="tilde">～</div>
+                            <input type="time" name="{{ $breakEndName }}" value="{{ old($breakEndName, $break['end'] ?? '') }}" class="form-control" style="width: 100px;">
                         @endif
                     </div>
                 @endforeach
@@ -100,7 +92,6 @@
                 {{-- 備考 --}}
                 @php
                     $noteRaw = old('note', $application->note ?? '');
-                    // 「備考：」以降だけを抽出（なければ全体表示）
                     if (preg_match('/備考：(.+)/u', $noteRaw, $matches)) {
                         $noteToDisplay = trim($matches[1]);
                     } else {
@@ -110,60 +101,54 @@
 
                 <div class="form-group">
                     <label>備考</label>
-                    @if ($isAdmin)
-                        {{-- 管理者用：noteToDisplay（備考コメントのみ） --}}
-                        <div class="form-control" style="background-color: #f9f9f9;">{{ $noteToDisplay }}</div>
-                    @elseif ($isPending || $isApproved)
-                        {{-- スタッフ用：承認済や承認待ちは noteToDisplay を表示 --}}
+                    @if ($isAdmin || $isPending || $isApproved)
                         <div class="form-control" style="background-color: #f9f9f9;">{{ $noteToDisplay }}</div>
                     @else
-                        {{-- スタッフ用：申請可能時は note の全体編集 --}}
                         <textarea name="note" class="form-control">{{ old('note', $application->note ?? '') }}</textarea>
                     @endif
                 </div>
+            </div>
+            {{-- containerここまで --}}
 
-                {{-- 管理者には不可視、スタッフ用 --}}
-                @if (!$isAdmin)
-                    @if ($isPending)
-                        <div style="margin-top: 20px; color: red;">
-                            ※承認待ちのため修正はできません。
-                        </div>
-                    @elseif ($isApproved)
-                        <div class="status-button">
-                            <div style="margin-top: 20px; color: white; background-color: black; padding: 10px;">
-                                {{-- 承認済みの場合は修正不可 --}}
-                                承認済み
-                            </div>
-                        </div>
-                    @else
-                        <div class="btn-container">
-                            <button type="submit" class="btn btn-submit">修正申請</button>
-                        </div>
-                    @endif
-                @endif
-            </form>
-
-            {{-- スタッフには不可視、管理者用 --}}
-            @if ($isAdmin)
-                @if ($application?->status === '承認待ち')
-                    <form method="POST" action="{{ route('admin.attendance.approve', ['id' => $application->id]) }}">
-                        @csrf
-                        <button type="submit" class="btn btn-success">承認</button>
-                    </form>
-                @elseif ($application?->status === '承認')
-                    <div class="status-button">
-                        <button class="btn btn-secondary" disabled>承認済み</button>
-                    </div>
-                @endif
+            {{-- 修正ボタン（コンテナの外） --}}
+            @if (!$isAdmin && !$isPending && !$isApproved)
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-submit">修正</button>
+                </div>
             @endif
 
-            {{-- エラーメッセージ --}}
-                @if(session('error'))
-                    <div class="alert alert-danger" style="margin-top: 20px;">
-                        {{ session('error') }}
-                    </div>
-                @endif
+        </form>
 
-        </div>
-    </body>
+        {{-- 管理者用 承認ボタン --}}
+        @if ($isAdmin)
+            @if ($application?->status === '承認待ち')
+                <form method="POST" action="{{ route('admin.attendance.approve', ['id' => $application->id]) }}">
+                    @csrf
+                    <div class="btn-container">
+                        <button type="submit" class="btn btn-success">承認</button>
+                    </div>
+                </form>
+            @elseif ($application?->status === '承認')
+                <div class="status-button">
+                    <button class="btn btn-secondary" disabled>承認済み</button>
+                </div>
+            @endif
+        @endif
+
+        {{-- 申請中・承認済みメッセージ --}}
+        @if (!$isAdmin && $isPending)
+            <div class="notice-message">
+                ※承認待ちのため修正はできません。
+            </div>
+        @endif
+
+        {{-- エラーメッセージ --}}
+        @if(session('error'))
+            <div class="alert alert-danger" style="margin-top: 20px;">
+                {{ session('error') }}
+            </div>
+        @endif
+
+    </div>
+</body>
 @endsection

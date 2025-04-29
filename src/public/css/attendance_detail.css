@@ -1,0 +1,194 @@
+/* attendance_detail.css */
+
+/* 全体背景 */
+body {
+    background-color: #f1f0f4;
+    font-family: 'Noto Sans JP', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* コンテナ */
+div.container {
+    max-width: 1000px;
+    margin: 50px auto;
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 項目ごとのブロック */
+.form-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-top: 1px solid #e5e5e5;
+    font-size: 16px;
+}
+
+/* 先頭のブロックだけ、ボーダーなしにする場合 */
+.form-group:first-child {
+    border-top: none;
+}
+
+/* ラベル */
+.form-group label {
+    width: 150px;
+    /* ラベルを固定幅 */
+    font-weight: bold;
+    color: #555;
+}
+
+/* テキスト表示 */
+.form-group span,
+.form-group div.form-control {
+    flex-grow: 1;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* 入力フィールド */
+.form-control {
+    width: 100%;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+/* 備考欄 */
+textarea.form-control {
+    height: 100px;
+    resize: vertical;
+}
+
+/* ボタンコンテナ */
+.btn-container {
+    text-align: right;
+    padding: 20px;
+}
+
+/* 修正ボタン */
+.btn.btn-submit {
+    background-color: #000;
+    color: #fff;
+    padding: 10px 25px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn.btn-submit:hover {
+    background-color: #333;
+}
+
+/* 成功・エラーメッセージ */
+.alert {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+input[type="time"] {
+    width: 120px;
+}
+
+.form-group span,
+.form-group div.form-control {
+    flex: 1;
+    text-align: center;
+    /* ← 中央揃えに */
+    font-weight: bold;
+    /* ← データも太文字にする */
+    font-size: 16px;
+    /* ← 文字サイズも統一 */
+}
+
+/* 入力欄だけ個別に別扱いする */
+.form-group input[type="time"] {
+    width: 100px;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    /* ← input内も中央に */
+}
+
+.tilde {
+    width: 40px;
+    /* ちょうどよい幅に */
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.wrapper {
+    max-width: 1000px;
+    /* containerと同じ幅 */
+    margin: 50px auto 0 auto;
+    /* 中央揃え！ */
+}
+
+/* タイトル全体 */
+.page-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* タイトルテキスト */
+.title-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* タイトル前の縦線 */
+.title-text::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 24px;
+    background-color: black;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+.alert ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.notice-message {
+    max-width: 1000px;
+    /* containerと同じ幅 */
+    margin: 20px auto 50px auto;
+    /* 中央に配置（左右auto） */
+    padding-right: 20px;
+    /* 右に少し余白 */
+    text-align: right;
+    /* テキストを右寄せ */
+    color: red;
+    font-size: 13px;
+}

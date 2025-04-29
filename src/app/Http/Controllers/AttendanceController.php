@@ -478,6 +478,7 @@ class AttendanceController extends Controller
             'event_type' => '複数申請', // 識別用
             'note' => implode(' / ', $summary) . ' / 備考：' . $request->note,
             'status' => '承認待ち',
+            'old_time' => $record->timestamp,
         ]);
 
         return redirect()->route('staff.attendance.show', ['id' => $record->id])
