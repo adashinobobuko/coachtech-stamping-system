@@ -146,6 +146,18 @@ class AuthController extends Controller
             ]);
         }
 
+        if (!$user) {
+            return back()->withErrors([
+                'email' => 'このメールアドレスは登録されていません。',
+            ]);
+        }
+
+        if (!$user->email_verified_at) {
+            return back()->withErrors([
+                'email' => 'メールアドレスが認証されていません。',
+            ]);
+        }
+
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             // セッションが開始されていなければ、開始する
             if (!session()->isStarted()) {

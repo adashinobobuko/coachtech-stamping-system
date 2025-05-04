@@ -93,6 +93,7 @@ class AttendanceController extends Controller
 
         $request->validate([
             'type' => 'required|in:clock_in,break_start,break_end,clock_out',
+            'timestamp' => 'nullable|date',
         ]);
 
         $type = $request->type;
@@ -128,7 +129,7 @@ class AttendanceController extends Controller
         Attendance::create([
             'user_id' => $user->id,
             'type' => $type,
-            'timestamp' => $now,
+            'timestamp' => $request->input('timestamp') ?? $now,
         ]);
 
         $status = $this->getStatus($user);

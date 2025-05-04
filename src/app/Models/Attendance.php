@@ -13,7 +13,7 @@ class Attendance extends Model
         'user_id',        
         'type',           // 打刻の種類（clock_in, break_start, break_end, clock_out）
         'timestamp',      // 打刻日時
-        'break_start2',
+        'break_start2', //これいらないかも
         'break_end2',
         'note'
     ];

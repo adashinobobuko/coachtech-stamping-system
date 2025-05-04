@@ -1,0 +1,53 @@
+/* 全体の中央寄せ */
+.container {
+    max-width: 600px;
+    margin: 150px auto;
+    padding: 40px;
+    text-align: center;
+    font-family: "Helvetica Neue", sans-serif;
+}
+
+/* 見出し */
+.container h4 {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+/* 認証ボタンのデザイン */
+.verify__button {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #f2f2f2;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    color: #000;
+    text-decoration: none;
+    margin-bottom: 30px;
+    transition: background-color 0.3s ease;
+}
+
+.verify__button:hover {
+    background-color: #e0e0e0;
+}
+
+/* 再送信ボタンのデザイン */
+.btn-warning {
+    background: none;
+    border: none;
+    color: #007BFF;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.btn-warning:hover {
+    color: #0056b3;
+}
+
+a {
+    text-decoration: none;
+    color: #007BFF;
+}

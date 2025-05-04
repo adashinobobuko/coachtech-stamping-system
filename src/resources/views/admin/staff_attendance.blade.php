@@ -55,7 +55,7 @@
     </table>
     @endif
     
-    <a href="{{ route('admin.attendance.csv', ['id' => $user->id, 'date' => $currentMonth]) }}" class="btn btn-primary">CSV出力</a>
+    <a href="{{ route('admin.attendance.csv', ['id' => $user->id, 'date' => $currentMonth]) }}" class="csv-button">CSV出力</a>
 
         </div>
     </body>

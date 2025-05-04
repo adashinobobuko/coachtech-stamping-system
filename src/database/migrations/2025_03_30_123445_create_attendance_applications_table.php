@@ -18,8 +18,6 @@ class CreateAttendanceApplicationsTable extends Migration
             $table->text('note')->nullable();
             $table->enum('status', ['承認待ち', '承認', '却下'])->default('承認待ち');
             $table->timestamps();
-
-            // 外部キー制約
             $table->foreign('attendance_id')->references('id')->on('attendances')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });

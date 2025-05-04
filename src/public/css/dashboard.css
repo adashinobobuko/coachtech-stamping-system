@@ -94,4 +94,44 @@ a {
     justify-content: space-between;
     padding: 10rem 0;
     gap: 3rem;
+    width: 100%;
+    background-color: #FFFFFF;
+}
+
+.date-nav-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.date-nav-bar {
+    width: 100%;
+    max-width: 900px;
+    /* テーブルと同じ最大幅 */
+    background-color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #888;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.date-nav-bar .nav-link {
+    color: #888;
+    text-decoration: none;
+}
+
+.date-nav-bar .nav-link:hover {
+    text-decoration: underline;
+}
+
+.date-nav-bar .date-center {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 16px;
 }

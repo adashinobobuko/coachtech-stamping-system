@@ -25,16 +25,16 @@
 <div class="container mx-auto p-4">
     <h2 class="text-xl font-bold mb-4"> {{ $date->format('Y年n月j日') }}の勤怠</h2>
 
-    <div class="flex justify-center mb-6">
-        <div class="date-nav">
-            <a href="{{ route('admin.index', ['date' => $date->copy()->subDay()->format('Y-m-d')]) }}" class="text-purple-700">← 前日</a>
+    <div class="date-nav-container">
+        <div class="date-nav-bar">
+            <a href="{{ route('admin.index', ['date' => $date->copy()->subDay()->format('Y-m-d')]) }}" class="nav-link">← 前日</a>
 
-            <div class="flex items-center gap-2">
-                <span class="material-icons text-base">calendar_today</span>
+            <div class="date-center">
+                <span class="material-icons">calendar_today</span>
                 {{ $date->format('Y/m/d') }}
             </div>
 
-            <a href="{{ route('admin.index', ['date' => $date->copy()->addDay()->format('Y-m-d')]) }}" class="text-purple-700">翌日 →</a>
+            <a href="{{ route('admin.index', ['date' => $date->copy()->addDay()->format('Y-m-d')]) }}" class="nav-link">翌日 →</a>
         </div>
     </div>
 

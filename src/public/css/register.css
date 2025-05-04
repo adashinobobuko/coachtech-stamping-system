@@ -22,6 +22,7 @@ form {
     flex-direction: column;
     gap: 20px;
     text-align: left;
+    margin-bottom: 15px;
 }
 
 label {
@@ -70,4 +71,9 @@ a:hover {
     font-size: 12px;
     margin-top: -10px;
     margin-bottom: 10px;
+}
+
+.tologin {
+    margin-top: 15px;
+    text-align: center;
 }

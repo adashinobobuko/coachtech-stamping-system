@@ -81,9 +81,8 @@ body {
 
 /* CSVボタン */
 .csv-button {
-    display: block;
-    margin: 2rem auto 0;
-    padding: 0.5rem 2rem;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.85rem;
     background-color: #000;
     color: #fff;
     border: none;
@@ -91,6 +90,11 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
+    margin-top: 0.5rem;
+
+    /* 右寄せにする */
+    display: inline-block;
+    float: right;
 }
 
 .csv-button:hover {
