@@ -212,7 +212,7 @@ mysql  Ver 15.1
 Docker
 
 ## ER図  
-/home/bobuko/coachtech/laravel/coachtech-stamping-system/ER.drawio.png  
+![ER図](ER.drawio.png)
 ## URL
 開発環境：http://localhost/  
 '/'　トップページ（おすすめ商品）　検索の際searchが入る  
