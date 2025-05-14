@@ -16,10 +16,6 @@ class AttendanceApplication extends Model
         'event_type',
         'old_time',
         'new_time',
-        'clock_in',
-        'clock_out',
-        'break_start',
-        'break_end',
         'note',
         'status',
     ];

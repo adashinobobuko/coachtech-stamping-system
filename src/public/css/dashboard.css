@@ -135,3 +135,45 @@ a {
     gap: 0.5rem;
     font-size: 16px;
 }
+
+@media (min-width: 768px) and (max-width: 850px) {
+    .container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        padding-left: 0.75rem;
+        border-left: 4px solid #000;
+    }
+
+    .date-nav-bar {
+        flex-direction: row !important;
+        gap: 0.5rem;
+        padding: 0.8rem 1.2rem;
+        text-align: center;
+    }
+
+    .date-center {
+        font-size: 15px;
+    }
+
+    .material-icons {
+        font-size: 16px;
+    }
+
+    table {
+        font-size: 13px;
+    }
+
+    th,
+    td {
+        padding: 8px;
+    }
+
+    .date-nav-container {
+        padding: 0 1rem;
+    }
+}

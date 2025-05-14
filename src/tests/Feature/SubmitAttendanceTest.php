@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Attendance;
+use App\Models\Admin;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 
@@ -62,20 +63,21 @@ class SubmitAttendanceTest extends TestCase
         $response->assertSee('出勤中');
     }
 
-    // 出勤時刻が管理画面で確認できるかどうか 質問するのでまだ実行はしない
+    // 出勤時刻が管理画面で確認できるかどうか
     public function test_clock_in_time_visible_in_admin()
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
         $this->actingAs($user, 'web');
 
-        // 出勤ボタンを押す
+        $timestamp = now()->setSeconds(0); // 秒を揃える（または切り捨て）
+
         $this->post('/attendance', [
             'type' => 'clock_in',
-            'timestamp' => now(),
+            'timestamp' => $timestamp,
         ]);
 
         // 管理者としてログイン
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = Admin::factory()->create();
         $this->actingAs($admin, 'admin');
 
         // 管理者画面にアクセス
@@ -83,7 +85,7 @@ class SubmitAttendanceTest extends TestCase
         $response->assertStatus(200);
 
         // 出勤時刻が表示されていることを確認
-        $response->assertSee('出勤時刻');
+        $response->assertSeeText($timestamp->format('H:i'));
     }
 
     // 7
@@ -176,7 +178,7 @@ class SubmitAttendanceTest extends TestCase
         $response->assertSee('休憩中');
     }
 
-        // 休憩戻ボタンが機能するかどうか
+    // 休憩戻ボタンが機能するかどうか
     public function test_break_end_button_functionality()
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
@@ -333,4 +335,36 @@ class SubmitAttendanceTest extends TestCase
         $response->assertSee('退勤済み');
     }
 
+    // 退勤時刻が管理画面で確認できるかどうか
+    public function test_clock_out_time_visible_in_admin()
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $this->actingAs($user, 'web');
+
+        $timestamp = now()->setSeconds(0); 
+        $clockOutTime = $timestamp->copy()->addHours(8);
+
+        // 出勤打刻
+        $this->post('/attendance', [
+            'type' => 'clock_in',
+            'timestamp' => $timestamp,
+        ]);
+
+        // 退勤打刻
+        $this->post('/attendance', [
+            'type' => 'clock_out',
+            'timestamp' => $clockOutTime,
+        ]);
+
+        // 管理者としてログイン
+        $admin = Admin::factory()->create();
+        $this->actingAs($admin, 'admin');
+
+        // 管理者画面にアクセス
+        $response = $this->get('/admin/attendance/list');
+        $response->assertStatus(200);
+
+        // 退勤時刻が表示されていることを確認
+        $response->assertSeeText($clockOutTime->format('H:i'));
+    }
 }

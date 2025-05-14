@@ -23,7 +23,6 @@
             @csrf
             <input type="hidden" name="is_correction" value="1">
 
-            {{-- containerの中にフォーム内容だけ --}}
             <div class="container" style="margin-top: 50px;">
                 {{-- エラーメッセージ --}}
                 @if ($errors->any())

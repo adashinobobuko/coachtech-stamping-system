@@ -192,3 +192,73 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     color: red;
     font-size: 13px;
 }
+
+/* タブレット（768px〜850px）対応 */
+@media (min-width: 768px) and (max-width: 850px) {
+    .container {
+        max-width: 600px;
+        margin: 30px auto;
+        padding: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    
+    .form-group label {
+        width: 30%;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+    
+    .form-group .form-control,
+    .form-group span {
+        width: 65%;
+        font-size: 14px;
+    }
+
+    .tilde {
+        display: inline-block;
+        margin: 0 5px;
+        font-weight: bold;
+    }
+
+    .btn-container {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .btn-submit,
+    .btn-success,
+    .btn-secondary {
+        font-size: 14px;
+        padding: 10px 24px;
+        border-radius: 6px;
+    }
+
+    .notice-message {
+        text-align: center;
+        color: #555;
+        font-size: 14px;
+        margin-top: 20px;
+    }
+
+    .alert {
+        font-size: 14px;
+    }
+
+    .time-pair {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .time-pair input[type="time"] {
+        width: 100px;
+    }
+}

@@ -102,3 +102,50 @@ body {
     font-weight: bold;
     text-decoration: none;
 }
+
+@media (min-width: 768px) and (max-width: 850px) {
+    .page-header {
+        max-width: 100%;
+        padding: 0 15px;
+    }
+
+    .title-text {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .title-text::before {
+        height: 20px;
+        width: 3px;
+        margin-right: 8px;
+    }
+
+    .tab-menu {
+        flex-direction: row;
+        justify-content: start;
+        gap: 20px;
+        padding-bottom: 8px;
+        font-size: 13px;
+    }
+
+    .tab-menu a {
+        font-size: 13px;
+    }
+
+    .attendance-table {
+        width: 95%;
+        font-size: 13px;
+        margin-top: 15px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 8px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .attendance-table a {
+        font-size: 13px;
+    }
+}

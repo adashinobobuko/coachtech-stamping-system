@@ -112,6 +112,8 @@ MAIL_FROM_NAME="Example"
 > **注意:**  
 > `MAIL_HOST=mailhog` と記載するのがポイントです。  
 > docker-composeで設定したサービス名と一致させる必要があります。  
+> これは送信元メールアドレス・表示名として表示されます。テスト目的であれば任意の内容で構いません。  
+> このメール認証機能は、Featureテスト `MailVerifyTest` にて動作確認済みです。テスト方法に関しては後述いたします。  
   
 ### 3. docker-composeの再起動  
 ```bash  
@@ -123,21 +125,94 @@ docker-compose up -d
 コンテナ起動後、以下のURLにアクセスしてください。  
 http://localhost:8025  
 ブラウザ上で送信されたメール一覧が確認できるようになります。  
-
-シーディングについてはユニットテストの説明の時に一緒に記載。
+  
+### 5.シーディングについて
+マイグレーションと初期データの投入をします
+```bash  
 docker-compose exec app php artisan migrate  
 docker-compose exec app php artisan db:seed  
-管理者シーディングについてかく
-AdminSeeder
-AttendanceSeeder
+```  
+#### 各シーダーの説明  
+・AdminSeeder  
+  
+開発用の管理者アカウントを1件作成します：  
+  
+名前: 管理者  
+メールアドレス: admin@example.com  
+パスワード: password123  
+```bash  
+docker-compose exec app php artisan db:seed --class=AdminSeeder  
+```  
+
+・TestUserAttendanceSeeder  
+  
+以下のテスト用データを登録します：
+
+user_id = 1 のユーザーに対して、  
+2025年3月1日～31日、および 4月1日～本日 までの平日のみ  
+出勤・退勤、休憩開始・終了のデータを1日分ずつ作成  
+
+```bash  
+docker-compose exec app php artisan db:seed --class=TestUserAttendanceSeeder  
+```  
+・DatabaseSeeder  
+  
+php artisan db:seed で実行されるデフォルトのシーダーです。以下をまとめて実行します：  
+1.AdminSeeder を呼び出し  
+2.テストユーザー（test@example.com / password）を1件作成  
+3.TestUserAttendanceSeeder を呼び出し  
+
+### 6.ユニットテストについて　　
+  
+本プロジェクトでは、Laravelの PHPUnit を用いた Featureテスト を実装しています。
+勤怠打刻処理・修正申請・管理者操作・メール認証（Mailhogを使用）など、システムの主要機能に対して自動テストを行うことで、機能の正当性と保守性を確保しています。  
+  
+使用環境：.env.testing ファイル  
+テスト実行時には、.env.testing ファイルが読み込まれます。  
+このファイルには、以下のようなテスト用の設定が記述されています：  
+  
+APP_ENV=testing（テスト環境として実行）  
+DB_DATABASE=demo_test（テスト専用のデータベースを使用）  
+MAIL_HOST=mailhog（Mailhogでメール送信テストが可能）  
+.env 同様の構成で、アプリキーやセッション設定も含む  
+  
+.env.testing の内容は .env.testing.example として同梱されているため、コピーして使用できます。
+```bash  
+cp .env.testing.example .env.testing  
+```  
+  
+**テストの実行方法**  
+以下のコマンドで、マイグレーションとシーディングを行い、その後ユニットテストを実行できます：  
+```bash
+# テスト用データベースを初期化・シーディング
+docker-compose exec app php artisan migrate:fresh --seed --env=testing  
+# 全テストを実行  
+docker-compose exec app ./vendor/bin/phpunit  
+# 特定のテストだけ実行したい場合  
+docker-compose exec app ./vendor/bin/phpunit --filter=テストクラス名またはメソッド名  
+```  
+
+#### 実行方法  
+以下のコマンドでテストを実行できます。  
+
+```bash  
+docker-compose exec app php artisan migrate:fresh --seed  
+docker-compose exec app ./vendor/bin/phpunit  
+
+もしくは、特定のテストだけを実行するには：  
+docker-compose exec app ./vendor/bin/phpunit --filter=クラス名またはメソッド名  
+```  
+  
+**環境構築に関しては以上となります。何か疑問点ありましたらお気軽にお申し付けください。**  
 
 ## 使用技術(実行環境)
 Laravel 8.83.8
-PHP バージョン変わったので記載
+PHP 8.1.32
 mysql  Ver 15.1 
 Docker
 
-## ER図
+## ER図  
+/home/bobuko/coachtech/laravel/coachtech-stamping-system/ER.drawio.png  
 ## URL
 開発環境：http://localhost/  
 '/'　トップページ（おすすめ商品）　検索の際searchが入る  

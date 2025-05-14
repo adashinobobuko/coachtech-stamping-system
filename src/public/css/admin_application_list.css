@@ -106,3 +106,12 @@ h1 {
 .application-table a:hover {
     text-decoration: underline;
 }
+
+/* レスポンシブデザインタブレット (768-850px) で崩れない */
+@media (min-width: 768px) and (max-width: 850px) {
+    .application-table th,
+    .application-table td {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+    }
+}

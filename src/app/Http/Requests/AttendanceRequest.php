@@ -32,37 +32,61 @@ class AttendanceRequest extends FormRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
+            $baseDate = Carbon::today(); // ← ここで日付を固定
+
             $clockIn = $this->input('clock_in');
             $clockOut = $this->input('clock_out');
 
-            if ($clockIn && $clockOut && Carbon::parse($clockIn)->gt(Carbon::parse($clockOut))) {
+            $clockInTime = $clockIn ? Carbon::parse($baseDate->format('Y-m-d') . ' ' . $clockIn) : null;
+            $clockOutTime = $clockOut ? Carbon::parse($baseDate->format('Y-m-d') . ' ' . $clockOut) : null;
+
+            if ($clockInTime && $clockOutTime && $clockInTime->gt($clockOutTime)) {
                 $validator->errors()->add('clock_in', '出勤時間もしくは退勤時間が不適切な値です。');
             }
 
             $breakStarts = $this->only(array_filter(array_keys($this->all()), fn($key) => str_starts_with($key, 'break_start_')));
-            
+
             foreach ($breakStarts as $key => $start) {
                 $index = str_replace('break_start_', '', $key);
                 $end = $this->input('break_end_' . $index);
 
-                // ★ここ追加
-                if ($start && $end && Carbon::parse($start)->gt(Carbon::parse($end))) {
-                    $validator->errors()->add($key,  '休憩時間が勤務時間外です。');
+                $startTime = $start ? Carbon::parse($baseDate->format('Y-m-d') . ' ' . $start) : null;
+                $endTime = $end ? Carbon::parse($baseDate->format('Y-m-d') . ' ' . $end) : null;
+
+                if ($startTime && $endTime && $startTime->gt($endTime)) {
+                    $validator->errors()->add($key, '休憩時間が勤務時間外です。');
                 }
 
-                $this->validateBreakTime($validator, $start, $end, $clockIn, $clockOut, $key);
+                $this->validateBreakTime(
+                    $validator,
+                    $startTime,
+                    $endTime,
+                    $clockInTime,
+                    $clockOutTime,
+                    'break_start_' . $index,
+                    'break_end_' . $index
+                );
+
             }
         });
     }
 
-    private function validateBreakTime($validator, $start, $end, $clockIn, $clockOut, $field)
+    private function validateBreakTime($validator, $startTime, $endTime, $clockInTime, $clockOutTime, $startField, $endField)
     {
-        if ($start && $clockIn && Carbon::parse($start)->lt(Carbon::parse($clockIn))) {
-            $validator->errors()->add($field, '休憩時間が勤務時間外です。');
+        if ($startTime && $clockInTime && $startTime->lt($clockInTime)) {
+            $validator->errors()->add($startField, '休憩時間が勤務時間外です。');
         }
 
-        if ($end && $clockOut && Carbon::parse($end)->gt(Carbon::parse($clockOut))) {
-            $validator->errors()->add($field, '休憩時間が勤務時間外です。');
+        if ($startTime && $clockOutTime && $startTime->gt($clockOutTime)) {
+            $validator->errors()->add($startField, '休憩時間が勤務時間外です。');
+        }
+
+        if ($endTime && $clockInTime && $endTime->lt($clockInTime)) {
+            $validator->errors()->add($endField, '休憩時間が勤務時間外です。');
+        }
+
+        if ($endTime && $clockOutTime && $endTime->gt($clockOutTime)) {
+            $validator->errors()->add($endField, '休憩時間が勤務時間外です。');
         }
     }
 

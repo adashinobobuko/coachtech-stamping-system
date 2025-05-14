@@ -8,13 +8,17 @@
 @section('content')
     <body>
         <div style="margin-top: 50px;">
-            <h2 class="title-text">勤怠一覧</h2>
 
-            {{-- 月選択 --}}
+            <div class="title-text-wrapper">
+                <h2 class="title-text">勤怠一覧</h2>
+            </div>
+
+                {{-- 月選択 --}}
             <div class="month-nav">
-                <a href="{{ route('attendance.list', ['month' => $prevMonth]) }}" class="btn">← 前月</a>
-                <span class="current-month">{{ $startOfMonth->format('Y年m月') }}</span>
-                <a href="{{ route('attendance.list', ['month' => $nextMonth]) }}" class="btn">翌月 →</a>
+                <button class="btn" onclick="location.href='{{ route('attendance.list', ['month' => $prevMonth]) }}'">← 前月</button>
+                <span class="current-month"><i class="material-icons">event</i>  <!-- カレンダーアイコン -->
+                {{ $startOfMonth->format('Y/m') }}</span>
+                <button class="btn" onclick="location.href='{{ route('attendance.list', ['month' => $nextMonth]) }}'">翌月 →</button>
             </div>
 
             {{-- 打刻一覧テーブル --}}

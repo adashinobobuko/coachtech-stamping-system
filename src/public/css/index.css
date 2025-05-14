@@ -121,8 +121,13 @@ form {
 .button-group {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 0;
     margin-top: 20px;
+}
+
+.button-group form {
+    margin: 0 4px;
+    /* 各ボタンの左右にわずかに余白 */
 }
 
 .btn,

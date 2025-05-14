@@ -1,14 +1,33 @@
 body {
-    background-color: #f3f3f3;
+    background-color: #F0EFF2;
     font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
 }
 
 .title-text {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
-    margin: 40px 0 20px 80px;
+    margin: 40px auto 30px 5%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+}
+
+.title-text::before {
+    content: "";
+    width: 4px;
+    height: 20px;
+    background-color: black;
+    display: inline-block;
+}
+
+.title-text-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-left: 20px;
+    /* ← 左に少し寄せる */
 }
 
 /* 月切替ナビ */
@@ -37,14 +56,14 @@ body {
 
 /* 勤怠テーブル */
 .attendance-table {
-    width: 90%;
-    max-width: 900px;
-    margin: 0 auto 60px;
-    border-collapse: separate;
-    border-spacing: 0;
+    width: 95%;
+    max-width: 1000px;
+    margin: 0 auto;
+    border-collapse: collapse;
     background-color: #fff;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
+    font-size: 15px;
 }
 
 .attendance-table thead {
@@ -70,17 +89,20 @@ body {
 
 /* 詳細ボタン */
 .btn-detail {
-    display: inline-block;
-    color: #000000;
-    padding: 6px 12px;
-    font-weight: bold;
+    padding: 4px 10px;
+    background-color: #eee;
+    border-radius: 4px;
+    color: #333;
     font-size: 13px;
+    font-weight: bold;
+    display: inline-block;
     text-decoration: none;
+    transition: 0.2s ease;
 }
 
 .btn-detail:hover {
-    background-color: #444;
-    color: #fff;
+    background-color: #ccc;
+    color: #000;
 }
 
 /* 詳細なし（無効ボタン） */
@@ -91,4 +113,78 @@ body {
     padding: 6px 12px;
     font-size: 13px;
     border-radius: 4px;
+}
+
+/* 月ナビゲーションの整列 */
+.month-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 30px;
+    background-color: #f9f9f9;
+    padding: 10px 0;
+    border-radius: 8px;
+}
+
+.month-nav .btn {
+    background: none;
+    border: none;
+    color: #000;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.month-nav .btn:hover {
+    color: #007bff;
+}
+
+.current-month {
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (min-width: 768px) and (max-width: 850px) {
+    .title-text {
+        font-size: 18px;
+        margin: 30px 0 15px 40px;
+    }
+
+    .month-nav {
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .month-nav .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .current-month {
+        font-size: 15px;
+    }
+
+    .attendance-table {
+        width: 95%;
+        font-size: 13px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    .btn-detail,
+    .btn-detail-disabled {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
 }

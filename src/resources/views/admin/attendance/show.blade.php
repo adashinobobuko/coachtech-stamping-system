@@ -13,13 +13,11 @@
 </div>
 
 <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
-    {{-- ↓ 白いコンテナの中は勤怠データだけ --}}
     <form method="POST" action="{{ route('admin.attendance.update', ['id' => $record->id]) }}">
         @csrf
-
         @if ($errors->any())
             <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
-                <ul class="list-disc pl-5">
+                <ul class="list-disc pl-5 alert alert-danger no-bullet">
                     @foreach ($errors->all() as $message)
                         <li>{{ $message }}</li>
                     @endforeach
@@ -27,14 +25,14 @@
             </div>
         @endif
 
-        <table class="table-auto w-full text-left border border-collapse border-gray-300">
+        <table class="table-auto w-full text-left border border-collapse border-gray-300 form-group">
             <tr class="border-b">
                 <th class="p-2 w-1/3">名前</th>
-                <td class="p-2">{{ $user->name }}</td>
+                <td class="p-2 bold">{{ $user->name }}</td>
             </tr>
             <tr class="border-b">
                 <th class="p-2">日付</th>
-                <td class="p-2">{{ $date->year }}年{{ $date->month }}月{{ $date->day }}日</td>
+                <td class="p-2 bold">{{ $date->year }}年{{ $date->month }}月{{ $date->day }}日</td>
             </tr>
             <tr class="border-b">
                 <th class="p-2">出勤・退勤</th>
@@ -43,33 +41,43 @@
                     <input type="time" name="clock_out" value="{{ $clockOut ? $clockOut->format('H:i') : '' }}">
                 </td>
             </tr>
-            <tr class="border-b">
-                <th class="p-2">休憩</th>
-                <td class="p-2">
-                    @if (count($breakPairs) > 0)
-                        @foreach ($breakPairs as $index => $pair)
-                            @php
-                                $breakStartName = 'break_start_' . ($index + 1);
-                                $breakEndName = 'break_end_' . ($index + 1);
-                            @endphp
-                            <div style="margin-bottom: 8px;">
-                                <label>休憩{{ $index + 1 }}</label>
-                                <input type="time" name="{{ $breakStartName }}" value="{{ $pair['start'] ?? '' }}" style="width: 100px;">
+            
+            @php
+                $validBreaks = array_filter($breakPairs, fn($pair) => !empty($pair['start']) || !empty($pair['end']));
+            @endphp
+
+            @if (count($validBreaks) > 0)
+                @foreach ($validBreaks as $index => $pair)
+                    @php
+                        $breakStartName = 'break_start_' . ($index + 1);
+                        $breakEndName = 'break_end_' . ($index + 1);
+                    @endphp
+                    <tr class="border-b">
+                        <th class="p-2">
+                            @if ($index === 0)
+                                休憩
+                            @else
+                                休憩{{ $index + 1 }}
+                            @endif
+                        </th>
+                        <td class="p-2">
+                            <div class="break-time-row">
+                                <input type="time" name="{{ $breakStartName }}" value="{{ $pair['start'] ?? '' }}" class="break-input">
                                 〜
-                                <input type="time" name="{{ $breakEndName }}" value="{{ $pair['end'] ?? '' }}" style="width: 100px;">
+                                <input type="time" name="{{ $breakEndName }}" value="{{ $pair['end'] ?? '' }}" class="break-input">
                             </div>
-                        @endforeach
-                    @endif
-                </td>
-            </tr>
+                        </td>
+                    </tr>
+                @endforeach
+            @endif
+
             <tr class="border-b">
                 <th class="p-2">備考</th>
                 <td class="p-2">
                     <textarea name="note" class="w-full border rounded" rows="3">{{ old('note', $note) }}</textarea>
                 </td>
-            </tr>     
+            </tr>
         </table>
-    </div> {{-- ★ここで白カード終了 --}}
 
     {{-- 修正ボタンを外に出す --}}
     <div class="btn-container">

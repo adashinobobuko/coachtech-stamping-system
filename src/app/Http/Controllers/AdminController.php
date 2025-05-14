@@ -271,7 +271,7 @@ class AdminController extends Controller
 
         // 備考更新
         if ($request->filled('note')) {
-            $beforeNote = null; // 最初に宣言！
+            $beforeNote = null; // 最初に空白だということを宣言
 
             $noteRecord = Attendance::where('user_id', $userId)
                 ->where('type', 'note')

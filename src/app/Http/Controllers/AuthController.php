@@ -69,7 +69,7 @@ class AuthController extends Controller
         $user = User::find(session('user_id'));
 
         if (!$user) {
-            return redirect()->route('register.form')->with('error', '登録情報が見つかりませんでした。');
+            return redirect()->route('staff.register')->with('error', '登録情報が見つかりませんでした。');
         }
 
         // 認証リンクを生成
