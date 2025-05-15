@@ -71,7 +71,7 @@ class AttendanceListTest extends TestCase
         $response->assertStatus(200);
 
         // 現在の月が表示されていることを確認
-        $currentMonth = now()->format('Y年m月');
+        $currentMonth = now()->format('Y/m');
         $response->assertSee($currentMonth);
     }
 
@@ -82,7 +82,7 @@ class AttendanceListTest extends TestCase
         $this->actingAs($user, 'web');
 
         // 前月の年月
-        $previousMonth = now()->subMonth()->format('Y年m月');
+        $previousMonth = now()->subMonth()->format('Y/m');
         $previousMonthParam = now()->subMonth()->format('Y-m');
 
         // 勤怠一覧画面（前月）にアクセス
@@ -102,7 +102,7 @@ class AttendanceListTest extends TestCase
         $this->actingAs($user, 'web');
 
         // 翌月の年月
-        $nextMonth = now()->addMonth()->format('Y年m月');
+        $nextMonth = now()->addMonth()->format('Y/m');
         $nextMonthParam = now()->addMonth()->format('Y-m');
 
         // 勤怠一覧画面（翌月）にアクセス

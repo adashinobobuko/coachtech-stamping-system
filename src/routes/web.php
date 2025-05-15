@@ -49,7 +49,7 @@ Route::get('/admin/login', [AuthController::class, 'showAdminLogin'])->name('adm
 Route::post('/admin/login', [AuthController::class, 'adminlogin'])->name('admin.login.submit');
 
 // 管理者用ルート
-Route::prefix('admin')->middleware(['auth:admin'])->group(function () {
+Route::prefix('admin')->middleware(['web', 'auth:admin'])->group(function () {
     Route::get('/attendance/list', [AdminController::class, 'index'])->name('admin.index');
     Route::get('/attendance/{id}', [AdminController::class, 'edit'])->name('admin.attendance.editshow');
     Route::post('/attendance/update/{id}', [AdminController::class, 'update'])->name('admin.attendance.update'); // 保存用

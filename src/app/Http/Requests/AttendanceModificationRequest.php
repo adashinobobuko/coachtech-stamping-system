@@ -15,19 +15,34 @@ class AttendanceModificationRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'clock_in' => ['required', 'date_format:H:i'],
+            'clock_in' => [
+                'required',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) {
+                    $clockOut = $this->input('clock_out');
+                    if ($clockOut) {
+                        $baseDate = now()->toDateString();
+                        $clockInTime = Carbon::parse("{$baseDate} {$value}");
+                        $clockOutTime = Carbon::parse("{$baseDate} {$clockOut}");
+
+                        if ($clockInTime->gt($clockOutTime)) {
+                            $fail('出勤時間もしくは退勤時間が不適切な値です。');
+                        }
+                    }
+                },
+            ],
             'clock_out' => ['required', 'date_format:H:i'],
             'note' => ['required', 'string', 'max:255'],
         ];
-
-        // 無限に休憩をチェックできるように動的に追加
+    
+        // 休憩フィールドを動的に追加
         foreach ($this->breakFields() as $field) {
             $rules[$field] = ['nullable', 'date_format:H:i'];
         }
-
+    
         return $rules;
     }
-
+    
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
@@ -35,7 +50,7 @@ class AttendanceModificationRequest extends FormRequest
             $clockOut = $this->input('clock_out');
             $baseDate = now()->toDateString();
 
-            if ($clockIn && $clockOut) {
+            if ($clockIn !== null && $clockOut !== null) {
                 $clockInTime = Carbon::parse("$baseDate $clockIn");
                 $clockOutTime = Carbon::parse("$baseDate $clockOut");
 

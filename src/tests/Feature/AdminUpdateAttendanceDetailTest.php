@@ -38,35 +38,42 @@ class AdminUpdateAttendanceDetailTest extends TestCase
         $response->assertSee($attendance->timestamp->format('H:i'));
     }
 
-    // 出勤時間が退勤時間より後になっている場合、エラーメッセージが表示される
     public function test_admin_attendance_update_invalid_time()
     {
         $admin = Admin::factory()->create();
         $this->actingAs($admin, 'admin');
-
-        $user = User::factory()->create(['name' => 'ユーザーA']);
-
+    
+        $user = User::factory()->create();
+    
         $attendance = Attendance::factory()->create([
             'user_id' => $user->id,
             'type' => 'clock_in',
             'timestamp' => now(),
         ]);
-
+    
         $response = $this->post('/admin/attendance/update/' . $attendance->id, [
-            'clock_in' => now()->addHours(2)->format('H:i'),
-            'clock_out' => now()->format('H:i'),
+            'clock_in' => '16:00', // 遅い出勤
+            'clock_out' => '08:00', // 早い退勤 → エラーになるべき
             'note' => 'テスト用',
-            'is_correction' => true,
         ]);
-
-        $response->assertSessionHasErrors('clock_in');
-
+    
+        // バリデーションによるリダイレクトを確認
+        $response->assertStatus(302);
+    
+        // エラーフィールドを確認
+        $response->assertSessionHasErrors(['clock_in']);
+    
+        // セッションから error メッセージを明示的に取り出す（重要！）
+        $errors = session()->get('errors');
+    
+        $this->assertNotNull($errors);
+        $this->assertTrue($errors->has('clock_in'));
         $this->assertEquals(
             '出勤時間もしくは退勤時間が不適切な値です。',
-            session('errors')->first('clock_in')
+            $errors->first('clock_in')
         );
-    }
-
+    }    
+    
     // 休憩開始時間が退勤時間より後になっている場合、エラーメッセージが表示される
     public function test_admin_attendance_update_invalid_break_time()
     {
