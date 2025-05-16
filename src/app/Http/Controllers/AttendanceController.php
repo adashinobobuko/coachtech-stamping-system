@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use Carbon\Carbon;
 use App\Models\AttendanceApplication;
 use App\Http\Requests\AttendanceRequest;
+use App\Models\AttendanceModification;
 
 class AttendanceController extends Controller
 {
@@ -543,105 +544,125 @@ class AttendanceController extends Controller
                 'break' => '0:00',
                 'total' => '0:00',
             ];
-
-            if (isset($groupedApplications[$date])) {
-                $applications = $groupedApplications[$date];
-
-                // 複数申請が含まれるかチェック
-                $multi = $applications->firstWhere('event_type', '複数申請');
-
-                if ($multi) {
-                    // note を解析して時刻を抽出
-                    preg_match('/出勤：(\d{2}:\d{2})/', $multi->note, $inMatch);
-                    preg_match('/退勤：(\d{2}:\d{2})/', $multi->note, $outMatch);
-                    preg_match_all('/休憩\d+：(\d{2}:\d{2})～(\d{2}:\d{2})/', $multi->note, $breakMatches, PREG_SET_ORDER);
-
-                    $clockIn = $inMatch[1] ?? null;
-                    $clockOut = $outMatch[1] ?? null;
-
-                    $attendances[$date]['clock_in'] = $clockIn;
-                    $attendances[$date]['clock_out'] = $clockOut;
-
-                    // 休憩合計
-                    $breakMinutes = 0;
-                    foreach ($breakMatches as $match) {
-                        $start = Carbon::createFromFormat('H:i', $match[1]);
-                        $end = Carbon::createFromFormat('H:i', $match[2]);
-                        $breakMinutes += $end->diffInMinutes($start);
-                    }
-
-                    $attendances[$date]['break'] = gmdate('H:i', $breakMinutes * 60);
-
-                    if ($clockIn && $clockOut) {
-                        $start = Carbon::createFromFormat('H:i', $clockIn);
-                        $end = Carbon::createFromFormat('H:i', $clockOut);
-                        $total = $end->diffInMinutes($start) - $breakMinutes;
-                        $attendances[$date]['total'] = gmdate('H:i', max(0, $total) * 60);
-                    }
-
-                    continue; // 複数申請優先なので個別申請はスキップ
-                }
-
-                // 個別申請処理
-                $clockIn = $applications->where('event_type', 'clock_in')->first()?->new_time;
-                $clockOut = $applications->where('event_type', 'clock_out')->first()?->new_time;
-
-                $attendances[$date]['clock_in'] = $clockIn ? Carbon::parse($clockIn)->format('H:i') : null;
-                $attendances[$date]['clock_out'] = $clockOut ? Carbon::parse($clockOut)->format('H:i') : null;
-
-                // break_start / break_end をペアにして集計
-                $breakStarts = $applications->where('event_type', 'break_start')->values();
-                $breakEnds = $applications->where('event_type', 'break_end')->values();
-
-                $breakMinutes = 0;
-                $pairCount = min($breakStarts->count(), $breakEnds->count());
-
-                for ($i = 0; $i < $pairCount; $i++) {
-                    $start = Carbon::parse($breakStarts[$i]->new_time);
-                    $end = Carbon::parse($breakEnds[$i]->new_time);
-                    $breakMinutes += $end->diffInMinutes($start);
-                }
-
-                $attendances[$date]['break'] = gmdate('H:i', $breakMinutes * 60);
-
-                if ($clockIn && $clockOut) {
-                    $worked = Carbon::parse($clockOut)->diffInMinutes(Carbon::parse($clockIn));
-                    $attendances[$date]['total'] = gmdate('H:i', max(0, $worked - $breakMinutes) * 60);
-                }
-            } else {
-                // 通常の勤怠データ（Attendanceテーブル）を使う場合
-                $breakMinutes = 0;
-                $breakBuffer = null;
-
-                foreach ($dailyRecords as $record) {
-                    switch ($record->type) {
-                        case 'clock_in':
-                            $attendances[$date]['clock_in'] = Carbon::parse($record->timestamp)->format('H:i');
-                            break;
-                        case 'clock_out':
-                            $attendances[$date]['clock_out'] = Carbon::parse($record->timestamp)->format('H:i');
-                            break;
-                        case 'break_start':
-                            $breakBuffer = Carbon::parse($record->timestamp);
-                            break;
-                        case 'break_end':
-                            if ($breakBuffer) {
-                                $breakMinutes += Carbon::parse($record->timestamp)->diffInMinutes($breakBuffer);
-                                $breakBuffer = null;
-                            }
-                            break;
-                    }
-                }
-
-                $attendances[$date]['break'] = gmdate('H:i', $breakMinutes * 60);
-
-                if ($attendances[$date]['clock_in'] && $attendances[$date]['clock_out']) {
-                    $workDuration = Carbon::parse($attendances[$date]['clock_out'])
-                        ->diffInMinutes(Carbon::parse($attendances[$date]['clock_in']));
-                    $attendances[$date]['total'] = gmdate('H:i', max(0, $workDuration - $breakMinutes) * 60);
+        
+            // ★ ここで修正追加：管理者による修正を取得
+            $modifications = AttendanceModification::where('user_id', $userId)
+                ->whereDate('modified_at', $date)
+                ->get()
+                ->keyBy('field');
+        
+            // --- 出勤・退勤の修正 ---
+            $modClockIn = $modifications->get('clock_in')?->new_value;
+            $modClockOut = $modifications->get('clock_out')?->new_value;
+        
+            if ($modClockIn) {
+                $attendances[$date]['clock_in'] = Carbon::createFromFormat('H:i', $modClockIn)->format('H:i');
+            }
+            if ($modClockOut) {
+                $attendances[$date]['clock_out'] = Carbon::createFromFormat('H:i', $modClockOut)->format('H:i');
+            }
+        
+            // --- 休憩時間の修正（ペアで） ---
+            $breakStarts = [];
+            $breakEnds = [];
+        
+            foreach ($modifications as $field => $mod) {
+                if (str_starts_with($field, 'break_start_')) {
+                    $index = (int) str_replace('break_start_', '', $field);
+                    $breakStarts[$index] = $mod->new_value;
+                } elseif (str_starts_with($field, 'break_end_')) {
+                    $index = (int) str_replace('break_end_', '', $field);
+                    $breakEnds[$index] = $mod->new_value;
                 }
             }
+        
+            $breakMinutes = 0;
+            $allIndexes = collect(array_unique(array_merge(array_keys($breakStarts), array_keys($breakEnds))))->sort()->values();
+            if ($allIndexes->isNotEmpty()) {
+                foreach ($allIndexes as $i) {
+                    $start = $breakStarts[$i] ?? null;
+                    $end = $breakEnds[$i] ?? null;
+                    if ($start && $end) {
+                        $breakMinutes += Carbon::createFromFormat('H:i', $end)
+                            ->diffInMinutes(Carbon::createFromFormat('H:i', $start));
+                    }
+                }
+                $attendances[$date]['break'] = gmdate('H:i', $breakMinutes * 60);
+            }
+        
+            // --- 以下は申請・通常データの処理。すでにclock_in/clock_out/休憩があるならスキップ ---
+            if (is_null($attendances[$date]['clock_in']) || is_null($attendances[$date]['clock_out'])) {
+                if (isset($groupedApplications[$date])) {
+                    $applications = $groupedApplications[$date];
+            
+                    $multi = $applications->firstWhere('event_type', '複数申請');
+                    if ($multi) {
+                        preg_match('/出勤：(\d{2}:\d{2})/', $multi->note, $inMatch);
+                        preg_match('/退勤：(\d{2}:\d{2})/', $multi->note, $outMatch);
+                        preg_match_all('/休憩\d+：(\d{2}:\d{2})～(\d{2}:\d{2})/', $multi->note, $breakMatches, PREG_SET_ORDER);
+            
+                        $attendances[$date]['clock_in'] = $inMatch[1] ?? null;
+                        $attendances[$date]['clock_out'] = $outMatch[1] ?? null;
+            
+                        $breakMinutes = 0;
+                        foreach ($breakMatches as $match) {
+                            $start = Carbon::createFromFormat('H:i', $match[1]);
+                            $end = Carbon::createFromFormat('H:i', $match[2]);
+                            $breakMinutes += $end->diffInMinutes($start);
+                        }
+                        $attendances[$date]['break'] = gmdate('H:i', $breakMinutes * 60);
+            
+                    } else {
+                        $clockInApp = $applications->firstWhere('event_type', 'clock_in')?->new_time;
+                        $clockOutApp = $applications->firstWhere('event_type', 'clock_out')?->new_time;
+            
+                        $attendances[$date]['clock_in'] = $clockInApp ? Carbon::parse($clockInApp)->format('H:i') : null;
+                        $attendances[$date]['clock_out'] = $clockOutApp ? Carbon::parse($clockOutApp)->format('H:i') : null;
+            
+                        $startApps = $applications->where('event_type', 'break_start')->values();
+                        $endApps = $applications->where('event_type', 'break_end')->values();
+            
+                        $breakMinutes = 0;
+                        for ($i = 0; $i < min($startApps->count(), $endApps->count()); $i++) {
+                            $start = Carbon::parse($startApps[$i]->new_time);
+                            $end = Carbon::parse($endApps[$i]->new_time);
+                            $breakMinutes += $end->diffInMinutes($start);
+                        }
+            
+                        $attendances[$date]['break'] = gmdate('H:i', $breakMinutes * 60);
+                    }
+            
+                } else {
+                    // Attendanceから
+                    $clockIn = $dailyRecords->firstWhere('type', 'clock_in')?->timestamp;
+                    $clockOut = $dailyRecords->firstWhere('type', 'clock_out')?->timestamp;
+            
+                    $attendances[$date]['clock_in'] = $clockIn ? Carbon::parse($clockIn)->format('H:i') : null;
+                    $attendances[$date]['clock_out'] = $clockOut ? Carbon::parse($clockOut)->format('H:i') : null;
+            
+                    $breaks = $dailyRecords->filter(fn($r) => str_starts_with($r->type, 'break'))->sortBy('timestamp')->values();
+                    $breakMinutes = 0;
+                    for ($i = 0; $i < $breaks->count() - 1; $i += 2) {
+                        $start = optional($breaks->get($i))->timestamp;
+                        $end = optional($breaks->get($i + 1))->timestamp;
+                        if ($start && $end) {
+                            $breakMinutes += Carbon::parse($end)->diffInMinutes(Carbon::parse($start));
+                        }
+                    }
+            
+                    $attendances[$date]['break'] = gmdate('H:i', $breakMinutes * 60);
+                }
+            }
+            
+            // 最終的な合計労働時間
+            if ($attendances[$date]['clock_in'] && $attendances[$date]['clock_out']) {
+                $start = Carbon::createFromFormat('H:i', $attendances[$date]['clock_in']);
+                $end = Carbon::createFromFormat('H:i', $attendances[$date]['clock_out']);
+                $total = $end->diffInMinutes($start) - $breakMinutes;
+                $attendances[$date]['total'] = gmdate('H:i', max(0, $total) * 60);
+            }
         }
+        
 
         return $attendances;
     }

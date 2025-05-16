@@ -39,7 +39,7 @@
         <tbody>
             @foreach ($attendances as $attendance)
                 <tr>
-                    <td>{{ \Carbon\Carbon::parse($attendance->date)->format('m/d(D)') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($attendance->date)->locale('ja')->isoFormat('MM/DD(ddd)') }}</td>
                     <td>{{ $attendance->clock_in ? $attendance->clock_in->format('H:i') : '' }}</td>
                     <td>{{ $attendance->clock_out ? $attendance->clock_out->format('H:i') : '' }}</td>
                     <td>{{ $attendance->break_minutes > 0 ? gmdate('H:i', $attendance->break_minutes * 60) : '' }}</td>
