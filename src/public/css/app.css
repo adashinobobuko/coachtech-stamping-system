@@ -40,56 +40,40 @@
 /* ナビゲーションレスポンシブ（スマホ・タブレット） */
 @media (min-width: 768px) and (max-width: 850px) {
     .header {
-        flex-direction: column;
-        align-items: flex-start;
-        height: auto;
-        padding: 20px;
+        flex-direction: row;
+        /* ← PCと同じく横並び */
+        align-items: center;
+        justify-content: space-between;
+        height: 70px;
+        padding: 0 40px;
     }
 
     .header-logo {
-        margin-bottom: 10px;
+        margin-bottom: 0;
+    }
+
+    .header-logo img {
+        height: 30px;
     }
 
     .taball {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        width: 100%;
+        flex-direction: row;
+        /* ← 横並びに変更 */
+        align-items: center;
+        gap: 40px;
+        width: auto;
+        text-align: left;
     }
 
     .taball a {
-        display: block;
+        display: inline;
         font-size: 16px;
-        padding: 8px 0;
-        line-height: 1.6;
+        padding: 0;
+        width: auto;
+        line-height: normal;
     }
 
     .logged-out {
-        margin-top: 10px;
+        margin-top: 0;
     }
-
-    .taball {
-        align-items: center; /* 中央寄せ */
-        text-align: center;  /* テキスト中央 */
-    }
-    
-    .taball a {
-        width: 100%; /* 必要に応じて */
-    }
-
-    .taball {
-        align-items: center;
-        /* 中央寄せ */
-        text-align: center;
-        /* テキスト中央 */
-    }
-    
-    .taball a {
-        width: 100%;
-        /* 必要に応じて */
-    }
-
-        .header-logo img {
-            height: 40px;   }
-    
 }

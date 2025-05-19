@@ -54,8 +54,8 @@
                 @foreach ($attendances as $attendance)
                 <tr class="border-t border-gray-200">
                     <td class="py-3 font-semibold text-gray-600">{{ $attendance->user->name }}</td>
-                    <td class="py-3">{{ $attendance->clock_in?->format('H:i') }}</td>
-                    <td class="py-3">{{ $attendance->clock_out?->format('H:i') }}</td>
+                    <td class="py-3">{{ $attendance->clock_in ?? '--:--' }}</td>
+                    <td class="py-3">{{ $attendance->clock_out ?? '--:--' }}</td>
                     <td class="py-3">{{ gmdate('H:i', $attendance->break_minutes * 60) }}</td>
                     <td class="py-3">{{ gmdate('H:i', $attendance->work_minutes * 60) }}</td>
                     <td class="py-3 font-bold text-black">

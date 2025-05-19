@@ -341,8 +341,9 @@ class SubmitAttendanceTest extends TestCase
         $user = User::factory()->create(['email_verified_at' => now()]);
         $this->actingAs($user, 'web');
 
-        $timestamp = now()->setSeconds(0); 
-        $clockOutTime = $timestamp->copy()->addHours(8);
+    // 当日内に収める
+        $timestamp = now()->startOfDay()->setTime(9, 0); // 出勤 09:00
+        $clockOutTime = $timestamp->copy()->addHours(8); // 退勤 17:00
 
         // 出勤打刻
         $this->post('/attendance', [
