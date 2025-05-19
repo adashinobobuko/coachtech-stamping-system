@@ -224,15 +224,42 @@ class AttendanceController extends Controller
         $clockOut = $modClockOut
             ? Carbon::createFromFormat('H:i', $modClockOut->new_value)
             : null;
-    
-        // fallback: 申請も修正もない場合はAttendanceを使用
-        if (!$clockIn) {
-            $clockIn = $clockInRecord?->timestamp;
+
+                
+        $multiApplication = AttendanceApplication::where('attendance_id', $id)
+            ->where('user_id', $userId)
+            ->where('event_type', '複数申請')
+            ->orderByDesc('created_at')
+            ->first();
+        
+        $inMatch = [];
+        $outMatch = [];
+        $breakMatches = [];
+        
+        if ($multiApplication) {
+            preg_match('/出勤：(\d{2}:\d{2})/', $multiApplication->note, $inMatch);
+            preg_match('/退勤：(\d{2}:\d{2})/', $multiApplication->note, $outMatch);
+            preg_match_all('/休憩\d+：(\d{2}:\d{2})～(\d{2}:\d{2})/', $multiApplication->note, $breakMatches, PREG_SET_ORDER);
         }
-        if (!$clockOut) {
-            $clockOut = $clockOutRecord?->timestamp;
-        }
     
+        // === 出勤時刻 ===
+        if ($modClockIn) {
+            $clockIn = Carbon::createFromFormat('H:i', $modClockIn->new_value); // 管理者修正が最優先
+        } elseif ($multiApplication && !empty($inMatch[1])) {
+            $clockIn = Carbon::createFromFormat('H:i', $inMatch[1]); // 承認済みApplicationのnote
+        } elseif ($clockInRecord) {
+            $clockIn = $clockInRecord->timestamp; // 最後に元データ
+        }
+
+        // === 退勤時刻 ===
+        if ($modClockOut) {
+            $clockOut = Carbon::createFromFormat('H:i', $modClockOut->new_value);
+        } elseif ($multiApplication && !empty($outMatch[1])) {
+            $clockOut = Carbon::createFromFormat('H:i', $outMatch[1]);
+        } elseif ($clockOutRecord) {
+            $clockOut = $clockOutRecord->timestamp;
+        }
+
         $attendanceIds = Attendance::where('user_id', $record->user_id)
             ->whereDate('timestamp', $baseDate)
             ->pluck('id');
@@ -275,12 +302,6 @@ class AttendanceController extends Controller
             }
         }
     
-        $multiApplication = AttendanceApplication::where('attendance_id', $id)
-            ->where('user_id', $userId)
-            ->where('event_type', '複数申請')
-            ->orderByDesc('created_at')
-            ->first();
-    
         if (empty($breakPairs) && $multiApplication) {
             preg_match('/出勤：(\d{2}:\d{2})/', $multiApplication->note, $inMatch);
             preg_match('/退勤：(\d{2}:\d{2})/', $multiApplication->note, $outMatch);
@@ -299,6 +320,7 @@ class AttendanceController extends Controller
                     'end' => $match[2],
                 ];
             }
+
         }
     
         if (empty($breakPairs)) {
@@ -355,6 +377,9 @@ class AttendanceController extends Controller
                 $noteToDisplay = $noteRaw;
             }
         }
+
+        // 管理者修正がある場合は、備考を優先
+        $hasModification = $modClockIn || $modClockOut || $modBreaks->isNotEmpty();
     
         return view('staff.attendance.detail', compact(
             'record',
@@ -365,8 +390,10 @@ class AttendanceController extends Controller
             'viewType',
             'isPending',
             'isApproved',
-            'noteToDisplay'
+            'noteToDisplay',
+            'hasModification'
         ));
+        
     }
     
     public function applicationDetail($id)

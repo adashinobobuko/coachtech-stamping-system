@@ -141,7 +141,7 @@ docker-compose exec app php artisan db:seed
 メールアドレス: admin@example.com  
 パスワード: password123  
 ```bash  
-docker-compose exec app php artisan db:seed --class=AdminSeeder  
+docker-compose exec php php artisan db:seed --class=AdminSeeder  
 ```  
 
 ・TestUserAttendanceSeeder  
@@ -153,7 +153,7 @@ user_id = 1 のユーザーに対して、
 出勤・退勤、休憩開始・終了のデータを1日分ずつ作成  
 
 ```bash  
-docker-compose exec app php artisan db:seed --class=TestUserAttendanceSeeder  
+docker-compose exec php php artisan db:seed --class=TestUserAttendanceSeeder  
 ```  
 ・DatabaseSeeder  
   
@@ -185,22 +185,22 @@ cp .env.testing.example .env.testing
 以下のコマンドで、マイグレーションとシーディングを行い、その後ユニットテストを実行できます：  
 ```bash
 # テスト用データベースを初期化・シーディング
-docker-compose exec app php artisan migrate:fresh --seed --env=testing  
+docker-compose exec php php artisan migrate:fresh --seed --env=testing  
 # 全テストを実行  
-docker-compose exec app ./vendor/bin/phpunit  
+docker-compose exec php ./vendor/bin/phpunit  
 # 特定のテストだけ実行したい場合  
-docker-compose exec app ./vendor/bin/phpunit --filter=テストクラス名またはメソッド名  
+docker-compose exec php ./vendor/bin/phpunit --filter=テストクラス名またはメソッド名  
 ```  
 
 #### 実行方法  
 以下のコマンドでテストを実行できます。  
 
 ```bash  
-docker-compose exec app php artisan migrate:fresh --seed  
-docker-compose exec app ./vendor/bin/phpunit  
+docker-compose exec php php artisan migrate:fresh --seed  
+docker-compose exec php ./vendor/bin/phpunit  
 
 もしくは、特定のテストだけを実行するには：  
-docker-compose exec app ./vendor/bin/phpunit --filter=クラス名またはメソッド名  
+docker-compose exec php ./vendor/bin/phpunit --filter=クラス名またはメソッド名  
 ```  
   
 **環境構築に関しては以上となります。何か疑問点ありましたらお気軽にお申し付けください。**  

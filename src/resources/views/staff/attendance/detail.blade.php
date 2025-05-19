@@ -110,7 +110,7 @@
             {{-- containerここまで --}}
 
             {{-- 修正ボタン（コンテナの外） --}}
-            @if (!$isAdmin && !$isPending && !$isApproved)
+            @if (!$isAdmin && !$isPending && !$isApproved && !$hasModification)
                 <div class="btn-container">
                     <button type="submit" class="btn btn-submit">修正</button>
                 </div>
@@ -135,10 +135,14 @@
         @endif
 
         {{-- 申請中・承認済みメッセージ --}}
-        @if (!$isAdmin && $isPending)
-            <div class="notice-message">
-                ※承認待ちのため修正はできません。
-            </div>
+        @if (!$isAdmin)
+            @if ($isPending)
+                <div class="notice-message">※承認待ちのため修正はできません。</div>
+            @elseif ($isApproved)
+                <div class="notice-message">※承認済みのため、修正はできません。</div>
+            @elseif ($hasModification)
+                <div class="notice-message">※管理者によって修正済みのため、修正はできません。</div>
+            @endif
         @endif
 
         {{-- エラーメッセージ --}}
