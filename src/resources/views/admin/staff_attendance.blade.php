@@ -8,7 +8,7 @@
 @section('content')
     <body>
         <div class="attendance-container">
-            <h1>{{ $user->name }}さんの勤怠</h1>
+            <h1 class="page-title">{{ $user->name }}さんの勤怠</h1>
 
         @php
             $date = \Carbon\Carbon::parse($currentMonth . '-01');

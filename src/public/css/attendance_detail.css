@@ -193,6 +193,25 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     font-size: 13px;
 }
 
+.status-button-outside {
+    max-width: 1000px;
+    /* containerと同じ幅 */
+    margin: 10px auto 30px;
+    padding-right: 20px;
+    text-align: right;
+}
+
+.status-button-outside .btn-approved {
+    background-color: #777;
+    color: #fff;
+    font-size: 14px;
+    padding: 6px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: default;
+    opacity: 0.95;
+}
+
 /* タブレット（768px〜850px）対応 */
 @media (min-width: 768px) and (max-width: 850px) {
     .container {
@@ -260,5 +279,15 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     
     .time-pair input[type="time"] {
         width: 100px;
+    }
+
+    .status-button-outside {
+        text-align: center;
+        padding-right: 0;
+    }
+    
+    .btn-approved {
+        font-size: 13px;
+        padding: 6px 16px;
     }
 }

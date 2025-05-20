@@ -23,7 +23,7 @@
 
 @section('content')
 <div class="container mx-auto p-4">
-    <h2 class="text-xl font-bold mb-4"> {{ $date->format('Y年n月j日') }}の勤怠</h2>
+    <h2 class="page-title"> {{ $date->format('Y年n月j日') }}の勤怠</h2>
 
     <div class="date-nav-container">
         <div class="date-nav-bar">

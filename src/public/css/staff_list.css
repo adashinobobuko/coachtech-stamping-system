@@ -43,6 +43,15 @@ td {
     color: #333;
 }
 
+.page-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding-left: 1rem;
+    border-left: 4px solid #000;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
 /* ボーダー */
 tr:not(:last-child) {
     border-bottom: 1px solid #e5e5e5;

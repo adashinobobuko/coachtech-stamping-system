@@ -8,12 +8,10 @@
 @section('content')
 
 {{-- タイトルを外に出す --}}
-<div class="page-title">
-    <h2 class="title-text">勤怠詳細</h2>
-</div>
+<h2 class="page-title">勤怠詳細</h2>
 
 <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
-    <form method="POST" action="{{ route('admin.attendance.update', ['id' => $record->id]) }}">
+    <form method="POST" action="{{ route('admin.attendance.update', ['id' => $record->id]) }}" id="attendance-update-form">
         @csrf
         @if ($errors->any())
             <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
@@ -79,11 +77,12 @@
             </tr>
         </table>
 
-    {{-- 修正ボタンを外に出す --}}
-    <div class="btn-container">
-        <button type="submit" class="btn btn-submit">修正</button>
-    </div>
-
     </form>
+
+</div>
+
+{{-- 修正ボタンを外に出す --}}
+<div class="btn-container-fixed">
+    <button type="submit" form="attendance-update-form" class="btn-fixed-submit">修正</button>
 </div>
 @endsection

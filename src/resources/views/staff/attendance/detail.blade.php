@@ -106,9 +106,9 @@
 
             {{-- 修正ボタン（コンテナの外） --}}
             @if (!$isAdmin && !$isPending && !$isApproved && !$hasModification)
-                <div class="btn-container">
-                    <button type="submit" class="btn btn-submit">修正</button>
-                </div>
+            <div class="btn-container-fixed">
+                <button type="submit" class="btn-submit" form="attendance-update-form">修正</button>
+            </div>
             @endif
 
         </form>
@@ -123,8 +123,8 @@
                     </div>
                 </form>
             @elseif ($application?->status === '承認')
-                <div class="status-button">
-                    <button class="btn btn-secondary" disabled>承認済み</button>
+                <div class="status-button-outside">
+                    <button class="btn-approved" disabled>承認済み</button>
                 </div>
             @endif
         @endif

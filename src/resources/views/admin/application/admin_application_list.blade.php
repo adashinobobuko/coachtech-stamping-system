@@ -7,7 +7,7 @@
 
 @section('content')
 <div class="application-container">
-    <h1>申請一覧</h1>
+    <h1 class="page-title">申請一覧</h1>
 
     {{-- タブ --}}
     <div class="tab-menu">
@@ -38,11 +38,9 @@
                 <tr>
                     <td>
                         @if($application->status === '承認待ち')
-                            <span class="badge bg-warning">承認待ち</span>
+                            <span class="badge">承認待ち</span>
                         @elseif($application->status === '承認')
-                            <span class="badge bg-success">承認済み</span>
-                        @else
-                            <span class="badge bg-secondary">不明</span>
+                            <span class="badge">承認済み</span>
                         @endif
                     </td>
                     <td>{{ $application->user->name }}</td>

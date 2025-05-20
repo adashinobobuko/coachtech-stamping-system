@@ -63,7 +63,7 @@ class AdminUpdateAttendanceDetailTest extends TestCase
         // エラーフィールドを確認
         $response->assertSessionHasErrors(['clock_in']);
     
-        // セッションから error メッセージを明示的に取り出す（重要！）
+        // セッションから error メッセージを明示的に取り出す
         $errors = session()->get('errors');
     
         $this->assertNotNull($errors);
