@@ -216,6 +216,20 @@ class AttendanceController extends Controller
                 ->latest('modified_at')
                 ->first()
             : null;
+
+        // 先にattendanceIDsを定義
+        $attendanceIds = Attendance::where('user_id', $record->user_id)
+        ->whereDate('timestamp', $baseDate)
+        ->pluck('id');
+    
+        $modNote = AttendanceModification::whereIn('attendance_id', $attendanceIds)
+            ->where('field', 'note')
+            ->latest('modified_at')
+            ->first();
+        
+        if ($modNote) {
+            $noteToDisplay = $modNote->new_value;
+        }
     
         $clockIn = $modClockIn
             ? Carbon::createFromFormat('H:i', $modClockIn->new_value)
@@ -259,10 +273,6 @@ class AttendanceController extends Controller
         } elseif ($clockOutRecord) {
             $clockOut = $clockOutRecord->timestamp;
         }
-
-        $attendanceIds = Attendance::where('user_id', $record->user_id)
-            ->whereDate('timestamp', $baseDate)
-            ->pluck('id');
     
         $modBreaks = AttendanceModification::whereIn('attendance_id', $attendanceIds)
             ->where('user_id', $record->user_id)
@@ -368,19 +378,36 @@ class AttendanceController extends Controller
     
         $isApproved = $application && $application->status === '承認';
     
+         // 管理者修正がある場合は、備考を優先
+        $hasModification = $modClockIn || $modClockOut || $modBreaks->isNotEmpty();
+
         $noteToDisplay = '';
-        if ($application) {
+
+        // 管理者修正がある場合は最優先
+        if ($modNote) {
+            $noteToDisplay = $modNote->new_value;
+        }
+        
+        // 申請がある場合は内容を上書き（modNoteが空だったときのみ）
+        elseif ($application) {
             $noteRaw = $application->note ?? '';
             if (preg_match('/備考：(.+)/u', $noteRaw, $matches)) {
                 $noteToDisplay = trim($matches[1]);
             } else {
                 $noteToDisplay = $noteRaw;
             }
+        
+            // 管理者修正もあった場合には追記（重複しないように）
+            if ($hasModification) {
+                $adminNote = '※こちらで修正対応済みです。';
+                if ($noteToDisplay !== $adminNote && !str_contains($noteToDisplay, $adminNote)) {
+                    $noteToDisplay = $noteToDisplay
+                        ? $noteToDisplay . "\n" . $adminNote
+                        : $adminNote;
+                }
+            }
         }
-
-        // 管理者修正がある場合は、備考を優先
-        $hasModification = $modClockIn || $modClockOut || $modBreaks->isNotEmpty();
-    
+        
         return view('staff.attendance.detail', compact(
             'record',
             'application',

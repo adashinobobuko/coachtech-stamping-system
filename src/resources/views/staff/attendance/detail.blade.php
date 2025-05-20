@@ -57,7 +57,7 @@
                 {{-- 出勤・退勤時間 --}}
                 <div class="form-group">
                     <label>出勤・退勤</label>
-                    @if ($isPending || $isApproved)
+                    @if ($isPending || $isApproved || $hasModification)
                         <span>{{ $clockIn ? $clockIn->format('H:i') : '―' }}</span>
                         <div class="tilde">～</div>
                         <span>{{ $clockOut ? $clockOut->format('H:i') : '―' }}</span>
@@ -76,7 +76,7 @@
                     @endphp
                     <div class="form-group">
                         <label>休憩{{ $index + 1 }}</label>
-                        @if ($isPending || $isApproved)
+                        @if ($isPending || $isApproved || $hasModification)
                             <span>{{ $break['start'] ?? '―' }}</span>
                             <div class="tilde">～</div>
                             <span>{{ $break['end'] ?? '―' }}</span>
@@ -88,24 +88,19 @@
                     </div>
                 @endforeach
 
-                {{-- 備考 --}}
-                @php
-                    $noteRaw = old('note', $application->note ?? '');
-                    if (preg_match('/備考：(.+)/u', $noteRaw, $matches)) {
-                        $noteToDisplay = trim($matches[1]);
-                    } else {
-                        $noteToDisplay = $noteRaw;
-                    }
-                @endphp
+            {{-- 備考 --}}
+            <div class="form-group">
+                <label>備考</label>
+                @if ($isAdmin || $isPending || $isApproved || $hasModification)
+                    {{-- 管理者または申請中・承認済み・修正済みの場合 --}}
+                    <div class="form-control" style="background-color: #f9f9f9; white-space: pre-wrap;">
+                        {{ $noteToDisplay }}
+                    </div>
+                @else
+                    <textarea name="note" class="form-control">{{ old('note', $application->note ?? '') }}</textarea>
+                @endif
+            </div>
 
-                <div class="form-group">
-                    <label>備考</label>
-                    @if ($isAdmin || $isPending || $isApproved)
-                        <div class="form-control" style="background-color: #f9f9f9;">{{ $noteToDisplay }}</div>
-                    @else
-                        <textarea name="note" class="form-control">{{ old('note', $application->note ?? '') }}</textarea>
-                    @endif
-                </div>
             </div>
             {{-- containerここまで --}}
 
