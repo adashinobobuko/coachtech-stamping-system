@@ -1,9 +1,16 @@
 # アプリケーション名  
 打刻システム(coachtech-stamping-system)  
+  
+## 概要  
+本アプリケーションは、社会人全般を対象とした勤怠打刻管理システムです。  
+スタッフによる出勤・退勤・休憩の打刻、および申請・修正依頼が可能です。  
+管理者は全スタッフの勤怠状況を閲覧・承認・修正できます。 
+  
 ## 環境構築  
 [github.com:coachtech-material/laravel-docker-template.git ](https://github.com/coachtech-material/laravel-docker-template)  
 laravelのディレクトリ構成はこちらからクローンして参考にさせていただいてます。  
 コマンドラインで以下のコマンドを実行してください。（WindowsはUbuntuのインストールが必要です。可能な方はPCを仮想化してから実行してください）  
+  
 ## メール認証について  
 mailhogというツールを使用・導入しています。  
 以下のコマンドの説明の途中で導入方法を記載いたします。  
@@ -48,7 +55,7 @@ cp .env.example .env  exit
 ```  
 
 .envファイルには以下のコードの記載をお願いします。  
-(私の方で.env.exampleにあらかじめ記載いたしましたのでこの工程は不要ですが念のためご確認くださいませ。)  
+(私の方で.env.exampleにあらかじめ記載済みのため、この工程は不要です。)  
 ```   
 まずはデータベース部分の下３行を書き換えてください。  
 DB_CONNECTION=mysql  
@@ -151,6 +158,7 @@ docker-compose exec php php artisan db:seed --class=AdminSeeder
 user_id = 1 のユーザーに対して、  
 2025年3月1日～31日、および 4月1日～本日 までの平日のみ  
 出勤・退勤、休憩開始・終了のデータを1日分ずつ作成  
+修正申請の承認されたもの（AttendanceApplication）、管理者が強制修正したもの（）
 
 ```bash  
 docker-compose exec php php artisan db:seed --class=TestUserAttendanceSeeder  
@@ -161,6 +169,10 @@ php artisan db:seed で実行されるデフォルトのシーダーです。以
 1.AdminSeeder を呼び出し  
 2.テストユーザー（test@example.com / password）を1件作成  
 3.TestUserAttendanceSeeder を呼び出し  
+※テストユーザーの情報  
+名前: テストユーザー  
+メールアドレス: test@example.com  
+パスワード: password  
 
 ### 6.ユニットテストについて　　
   
@@ -206,10 +218,10 @@ docker-compose exec php ./vendor/bin/phpunit --filter=クラス名またはメ�
 **環境構築に関しては以上となります。何か疑問点ありましたらお気軽にお申し付けください。**  
 
 ## 使用技術(実行環境)
-Laravel 8.83.8
-PHP 8.1.32
-mysql  Ver 15.1 
-Docker
+Laravel 8.83.8  
+PHP 8.1.32  
+mysql  Ver 15.1  
+Docker  
 
 ## ER図  
 ![ER図](ER.drawio.png)  

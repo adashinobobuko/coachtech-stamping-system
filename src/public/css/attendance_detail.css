@@ -73,19 +73,29 @@ textarea.form-control {
 }
 
 /* 修正ボタン */
-.btn.btn-submit {
-    background-color: #000;
-    color: #fff;
-    padding: 10px 25px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.btn-submit {
+    background-color: #000 !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    padding: 6px 18px !important;
+    border-radius: 6px !important;
+    border: none !important;
+    min-width: 72px !important;
+    min-height: 32px !important;
+    text-align: center !important;
+    display: inline-block !important;
+    line-height: 1.2 !important;
+    cursor: pointer !important;
 }
 
-.btn.btn-submit:hover {
-    background-color: #333;
+.btn-submit:hover {
+    background-color: #333 !important;
+}
+
+.btn-align-bottom {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 20px;
 }
 
 /* 成功・エラーメッセージ */

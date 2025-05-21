@@ -16,7 +16,7 @@ class ChangeTypeColumnLengthOnAttendancesTable extends Migration
     public function down()
     {
         Schema::table('attendances', function (Blueprint $table) {
-            $table->string('type', 10)->change(); // ← 元に戻す
+            $table->string('type', 20)->change(); // ← 元に戻す
         });
     }
 }

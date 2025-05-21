@@ -19,7 +19,7 @@
         </div>
 
         {{-- 修正フォーム全体 --}}
-        <form method="POST" action="{{ route('attendance.update', ['id' => $record->id ?? $application->attendance->id]) }}">
+        <form id="attendance-update-form" method="POST" action="{{ route('attendance.update', ['id' => $record->id ?? $application->attendance->id]) }}">
             @csrf
             <input type="hidden" name="is_correction" value="1">
 
@@ -106,8 +106,8 @@
 
             {{-- 修正ボタン（コンテナの外） --}}
             @if (!$isAdmin && !$isPending && !$isApproved && !$hasModification)
-            <div class="btn-container-fixed">
-                <button type="submit" class="btn-submit" form="attendance-update-form">修正</button>
+            <div class="btn-container-fixed btn-align-bottom">
+                <button type="submit" form="attendance-update-form" class="btn-submit">修正</button>
             </div>
             @endif
 
