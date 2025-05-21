@@ -1,0 +1,91 @@
+/* ヘッダー全体 */
+.header {
+    background-color: #000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    height: 70px;
+}
+
+/* ロゴエリア */
+.header-logo img {
+    height: 40px;
+}
+
+/* ナビゲーション全体（メニュー） */
+.taball {
+    display: flex;
+    gap: 40px;
+}
+
+/* ログアウトを他のメニューと同列にする */
+.logged-out {
+    display: inline;
+}
+
+/* ログイン時のリンク */
+.tologin {
+    display: inline;
+}
+
+/* タブ（メニュー） */
+.taball a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* ナビゲーションレスポンシブ（スマホ・タブレット） */
+@media (min-width: 768px) and (max-width: 850px) {
+    .header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        height: 70px;
+        padding: 0 40px;
+    }
+
+    .header-logo {
+        margin-bottom: 0;
+    }
+
+    .header-logo img {
+        height: 30px;
+        margin-right: 20px;
+    }
+
+    .taball {
+        display: flex;
+        justify-content: center;
+        /* ← これが重要！！ */
+        align-items: center;
+        flex-direction: row;
+        gap: 40px;
+        width: auto;
+        text-align: left;
+    }
+
+    .taball a {
+        white-space: nowrap;
+        display: inline-block;
+        color: #fff;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;   
+    }   
+
+    .logged-out {
+        display: flex;
+        align-items: center;
+    }
+    
+    .logged-out a {
+        color: #fff;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+}

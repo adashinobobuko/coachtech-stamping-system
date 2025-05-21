@@ -76,12 +76,12 @@ textarea.form-control {
 .btn-submit {
     background-color: #000 !important;
     color: #fff !important;
-    font-size: 14px !important; /* ← 小さめ */
-    padding: 6px 20px !important; /* ← ボタンサイズ縮小 */
+    font-size: 14px !important;
+    padding: 6px 20px !important;
     border-radius: 6px !important;
     border: none !important;
-    min-width: auto !important;   /* ← ここで最小幅解除 */
-    min-height: auto !important;  /* ← 高さも自動 */
+    min-width: auto !important;
+    min-height: auto !important;
     text-align: center !important;
     display: inline-block !important;
     line-height: 1.4 !important;
