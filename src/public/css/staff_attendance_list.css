@@ -101,9 +101,7 @@ body {
     transition: background-color 0.2s ease-in-out;
     margin-top: 0.5rem;
     margin-bottom: 1rem;
-
     /* 右寄せにする */
-    display: inline-block;
     float: right;
 }
 
