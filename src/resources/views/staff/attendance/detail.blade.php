@@ -106,7 +106,7 @@
 
             {{-- 修正ボタン（コンテナの外） --}}
             @if (!$isAdmin && !$isPending && !$isApproved && !$hasModification)
-            <div class="btn-container-fixed btn-align-bottom">
+            <div class="btn-align-bottom">
                 <button type="submit" form="attendance-update-form" class="btn-submit">修正</button>
             </div>
             @endif
@@ -119,7 +119,7 @@
                 <form method="POST" action="{{ route('admin.attendance.approve', ['id' => $application->id]) }}">
                     @csrf
                     <div class="btn-container">
-                        <button type="submit" class="btn btn-success">承認</button>
+                        <button type="submit" class="btn-approve">承認</button>
                     </div>
                 </form>
             @elseif ($application?->status === '承認')

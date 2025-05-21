@@ -76,17 +76,18 @@ textarea.form-control {
 .btn-submit {
     background-color: #000 !important;
     color: #fff !important;
-    font-size: 13px !important;
-    padding: 6px 18px !important;
+    font-size: 14px !important; /* ← 小さめ */
+    padding: 6px 20px !important; /* ← ボタンサイズ縮小 */
     border-radius: 6px !important;
     border: none !important;
-    min-width: 72px !important;
-    min-height: 32px !important;
+    min-width: auto !important;   /* ← ここで最小幅解除 */
+    min-height: auto !important;  /* ← 高さも自動 */
     text-align: center !important;
     display: inline-block !important;
-    line-height: 1.2 !important;
+    line-height: 1.4 !important;
     cursor: pointer !important;
 }
+
 
 .btn-submit:hover {
     background-color: #333 !important;
@@ -96,6 +97,7 @@ textarea.form-control {
     display: flex;
     justify-content: flex-end;
     padding-top: 20px;
+    margin-bottom: 30px;
 }
 
 /* 成功・エラーメッセージ */
@@ -211,7 +213,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     text-align: right;
 }
 
-.status-button-outside .btn-approved {
+.btn-approve{
+    background-color: #000;
+    color: #fff;
+    font-size: 14px;
+    padding: 6px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.status-button-outside .btn-approved{
     background-color: #777;
     color: #fff;
     font-size: 14px;
@@ -267,6 +279,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
         font-size: 14px;
         padding: 10px 24px;
         border-radius: 6px;
+    }
+
+    .btn-success {
+        font-size: 14px;
+        padding: 6px 20px;
+        border-radius: 6px;   
     }
 
     .notice-message {

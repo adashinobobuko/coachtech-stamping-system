@@ -61,7 +61,8 @@ cp .env.example .env  exit
 DB_CONNECTION=mysql  
 DB_HOST=mysql  
 DB_PORT=3306  
-DB_DATABASE=laravel_db ここから下↓
+# ここから下を書き換えてください ↓
+DB_DATABASE=laravel_db  
 DB_USERNAME=laravel_user  
 DB_PASSWORD=laravel_pass  
 ```   
@@ -221,8 +222,10 @@ docker-compose exec php ./vendor/bin/phpunit --filter=クラス名またはメ�
 Laravel 8.83.8  
 PHP 8.1.32  
 mysql  Ver 15.1  
-Docker  
-
+Docker
+Ubuntu  
+Linux  
+  
 ## ER図  
 ![ER図](ER.drawio.png)  
   
@@ -249,7 +252,7 @@ Docker
 - 模擬案件提出の都合上、ルーティングや処理の一部がコントローラーに集約されており、複雑に見える可能性があります。
   - 将来的・今後は、ルートをコントローラーごとにファイル分割したり、ルートの命名を統一したりする改善余地があります。
 - 機能確認のため、ルートやパスがやや長くなる箇所がありますが、**各URLの遷移先は明確に指示通りの設計です。**
-- 管理者修正モデル（AttendanceModification）とテーブル名（admin_modifiation）が不一致です。将来的、今後は名前をそろえるよう努めます。
+- 管理者修正モデル（AttendanceModification）とテーブル名（admin_modification）が不一致です。将来的、今後は名前をそろえるよう努めます。
 
 ---
 

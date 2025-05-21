@@ -15,10 +15,10 @@
 
                 {{-- 月選択 --}}
             <div class="month-nav">
-                <button class="btn" onclick="location.href='{{ route('attendance.list', ['month' => $prevMonth]) }}'">← 前月</button>
+                <button class="btn btn-prev" onclick="location.href='{{ route('attendance.list', ['month' => $prevMonth]) }}'">← 前月</button>
                 <span class="current-month"><i class="material-icons">event</i>  <!-- カレンダーアイコン -->
                 {{ $startOfMonth->format('Y/m') }}</span>
-                <button class="btn" onclick="location.href='{{ route('attendance.list', ['month' => $nextMonth]) }}'">翌月 →</button>
+                <button class="btn btn-next" onclick="location.href='{{ route('attendance.list', ['month' => $nextMonth]) }}'">翌月 →</button>
             </div>
 
             {{-- 打刻一覧テーブル --}}
